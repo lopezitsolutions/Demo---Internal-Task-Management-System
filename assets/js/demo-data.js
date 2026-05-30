@@ -178,7 +178,43 @@ const DEMO_DATA = {
       createdAt: "2024-06-01T10:00:00Z",
       updatedAt: "2024-06-20T16:00:00Z",
       deletedAt: null,
-      tasks: [],
+      tasks: [
+    {
+      id: 1,
+      taskName: "Design API v2 Specification",
+      description: "Create OpenAPI specification for the new REST API version 2.",
+      assignedTo: 4,
+      assignedToUser: { id: 4, nickname: "Sarah Dev", email: "sarah@itwms.demo" },
+      dueDate: "2024-07-10T00:00:00Z",
+      taskStatus: "in_progress",
+      status: "in_progress",
+      collaborators: [
+        { id: 5, userId: 5, nickname: "James Dev", email: "james@itwms.demo" }
+      ]
+    },
+    {
+      id: 2,
+      taskName: "Implement Authentication Middleware",
+      description: "Build JWT-based authentication middleware for all API endpoints.",
+      assignedTo: 5,
+      assignedToUser: { id: 5, nickname: "James Dev", email: "james@itwms.demo" },
+      dueDate: "2024-07-20T00:00:00Z",
+      taskStatus: "to_do",
+      status: "to_do",
+      collaborators: []
+    },
+    {
+      id: 9,
+      taskName: "Update Documentation",
+      description: "Update the API documentation with the latest endpoint changes.",
+      assignedTo: 4,
+      assignedToUser: { id: 4, nickname: "Sarah Dev", email: "sarah@itwms.demo" },
+      dueDate: "2024-07-12T00:00:00Z",
+      taskStatus: "cancelled",
+      status: "cancelled",
+      collaborators: []
+    }
+  ],
     },
     {
       id: 2,
@@ -192,7 +228,43 @@ const DEMO_DATA = {
       createdAt: "2024-06-05T09:00:00Z",
       updatedAt: "2024-06-19T14:00:00Z",
       deletedAt: null,
-      tasks: [],
+      tasks: [
+    {
+      id: 3,
+      taskName: "Write Penetration Test Report",
+      description: "Document results from external penetration testing engagement.",
+      assignedTo: 6,
+      assignedToUser: { id: 6, nickname: "Lisa QA", email: "lisa@itwms.demo" },
+      dueDate: "2024-07-25T00:00:00Z",
+      taskStatus: "pending_approval",
+      status: "pending_approval",
+      collaborators: [
+        { id: 7, userId: 7, nickname: "Tom QA", email: "tom@itwms.demo" }
+      ]
+    },
+    {
+      id: 4,
+      taskName: "Fix SQL Injection Vulnerability",
+      description: "Patch the reported SQL injection in the user search endpoint.",
+      assignedTo: 4,
+      assignedToUser: { id: 4, nickname: "Sarah Dev", email: "sarah@itwms.demo" },
+      dueDate: "2024-07-05T00:00:00Z",
+      taskStatus: "completed",
+      status: "completed",
+      collaborators: []
+    },
+    {
+      id: 10,
+      taskName: "Performance Testing",
+      description: "Run load tests on the new staging environment.",
+      assignedTo: 7,
+      assignedToUser: { id: 7, nickname: "Tom QA", email: "tom@itwms.demo" },
+      dueDate: "2024-07-28T00:00:00Z",
+      taskStatus: "to_do",
+      status: "to_do",
+      collaborators: []
+    }
+  ],
     },
     {
       id: 3,
@@ -206,7 +278,32 @@ const DEMO_DATA = {
       createdAt: "2024-06-10T11:00:00Z",
       updatedAt: "2024-06-21T10:00:00Z",
       deletedAt: null,
-      tasks: [],
+      tasks: [
+    {
+      id: 5,
+      taskName: "Book Venue for Offsite",
+      description: "Research and book a suitable venue for the 2024 team offsite.",
+      assignedTo: 8,
+      assignedToUser: { id: 8, nickname: "Anna HR", email: "anna@itwms.demo" },
+      dueDate: "2024-07-15T00:00:00Z",
+      taskStatus: "to_do",
+      status: "to_do",
+      collaborators: []
+    },
+    {
+      id: 6,
+      taskName: "Prepare Offsite Agenda",
+      description: "Draft the agenda and schedule for the team offsite day.",
+      assignedTo: 8,
+      assignedToUser: { id: 8, nickname: "Anna HR", email: "anna@itwms.demo" },
+      dueDate: "2024-07-20T00:00:00Z",
+      taskStatus: "in_progress",
+      status: "in_progress",
+      collaborators: [
+        { id: 2, userId: 2, nickname: "Maria Manager", email: "manager@itwms.demo" }
+      ]
+    }
+  ],
     },
     {
       id: 4,
@@ -220,7 +317,19 @@ const DEMO_DATA = {
       createdAt: "2024-05-01T08:00:00Z",
       updatedAt: "2024-06-01T12:00:00Z",
       deletedAt: null,
-      tasks: [],
+      tasks: [
+    {
+      id: 7,
+      taskName: "Migrate Database Schema",
+      description: "Execute the database schema migration scripts for the cloud migration.",
+      assignedTo: 5,
+      assignedToUser: { id: 5, nickname: "James Dev", email: "james@itwms.demo" },
+      dueDate: "2024-08-01T00:00:00Z",
+      taskStatus: "rejected",
+      status: "rejected",
+      collaborators: []
+    }
+  ],
     },
     {
       id: 5,
@@ -234,8 +343,22 @@ const DEMO_DATA = {
       createdAt: "2024-06-15T13:00:00Z",
       updatedAt: "2024-06-22T09:00:00Z",
       deletedAt: null,
-      tasks: [],
-    },
+      tasks: [
+    {
+      id: 8,
+      taskName: "Compile Feedback Summary",
+      description: "Create a summary report of all customer feedback from Q2.",
+      assignedTo: 2,
+      assignedToUser: { id: 2, nickname: "Maria Manager", email: "manager@itwms.demo" },
+      dueDate: "2024-07-18T00:00:00Z",
+      taskStatus: "to_do",
+      status: "to_do",
+      collaborators: [
+        { id: 8, userId: 8, nickname: "Anna HR", email: "anna@itwms.demo" }
+      ]
+    }
+  ],
+    }
   ],
 
   // ─── Tasks ───
