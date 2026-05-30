@@ -156,43 +156,6 @@
             </button>
           </div>
 
-          <div id="user-form-card" class="form-card hidden">
-            <form id="user-form">
-              <div class="form-grid">
-                <label>
-                  <span>Full Name</span>
-                  <input name="name" type="text" placeholder="John Doe" required />
-                </label>
-                <label>
-                  <span>Email</span>
-                  <input name="email" type="email" placeholder="john@example.com" required />
-                </label>
-                <label>
-                  <span>Role</span>
-                  <select name="role" required>
-                    <option value="Admin">Admin</option>
-                    <option value="Manager">Manager</option>
-                    <option value="Employee">Employee</option>
-                  </select>
-                </label>
-                <label>
-                  <span>Department</span>
-                  <select name="departmentId">
-                    <option value="">Unassigned</option>
-                  </select>
-                </label>
-                <label>
-                  <span>Password</span>
-                  <input name="password" type="password" placeholder="Create password" />
-                </label>
-              </div>
-              <div class="form-actions">
-                <button type="submit" class="primary-button">Save user</button>
-                <button id="cancel-user-form" type="button" class="ghost-button">Cancel</button>
-              </div>
-            </form>
-          </div>
-
           <div id="users-list" class="list-grid"></div>
         </section>
 
@@ -206,27 +169,6 @@
             <button id="toggle-department-form" class="secondary-button" type="button">
               <span>+</span> Create department
             </button>
-          </div>
-
-          <div id="department-form-card" class="form-card hidden">
-            <form id="department-form">
-              <div class="form-grid">
-                <label>
-                  <span>Department Name</span>
-                  <input name="name" type="text" placeholder="Engineering" required />
-                </label>
-                <label>
-                  <span>Manager</span>
-                  <select name="managerId">
-                    <option value="">Unassigned</option>
-                  </select>
-                </label>
-              </div>
-              <div class="form-actions">
-                <button type="submit" class="primary-button">Save department</button>
-                <button id="cancel-department-form" type="button" class="ghost-button">Cancel</button>
-              </div>
-            </form>
           </div>
 
           <div id="department-list" class="list-grid"></div>
@@ -300,6 +242,56 @@
         <div class="modal-footer">
           <button type="button" id="cancel-reset" class="ghost-button">Cancel</button>
           <button type="submit" class="primary-button">Send reset link</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- User Form Modal -->
+  <div id="user-form-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="user-form-title">
+    <div class="modal-content tasks-modal-content tasks-modal-content--form">
+      <div class="modal-header">
+        <h3 id="user-form-title">Create User</h3>
+        <button type="button" id="close-user-form-modal" class="close-button" aria-label="Close">&times;</button>
+      </div>
+      <form id="user-form" class="tasks-modal-form">
+        <div class="form-grid users-form-grid">
+          <label><span>Email</span><input name="email" type="email" placeholder="user@example.com" autocomplete="email" required /></label>
+          <label><span>Nickname</span><input name="nickname" type="text" placeholder="Display name" autocomplete="name" required /></label>
+          <label><span>Phone</span><input name="phoneNum" type="tel" placeholder="09XXXXXXXXX" autocomplete="tel" /></label>
+          <label><span>Department</span><select name="departmentId" id="user-dep-select"><option value="">— None —</option></select></label>
+          <label class="users-form-span"><span>Role</span>
+            <select name="role" required>
+              <option value="Admin">Admin</option>
+              <option value="Manager">Manager</option>
+              <option value="Employee" selected>Employee</option>
+            </select>
+          </label>
+        </div>
+        <div class="modal-footer tasks-modal-actions">
+          <button type="submit" class="primary-button" id="user-form-submit">Save User</button>
+          <button id="cancel-user-form" type="button" class="ghost-button">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Department Form Modal -->
+  <div id="department-form-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="dept-form-title">
+    <div class="modal-content tasks-modal-content tasks-modal-content--form">
+      <div class="modal-header">
+        <h3 id="dept-form-title">Create Department</h3>
+        <button type="button" id="close-dept-form-modal" class="close-button" aria-label="Close">&times;</button>
+      </div>
+      <form id="department-form" class="tasks-modal-form">
+        <div class="form-grid">
+          <label><span>Department Name</span><input name="name" type="text" placeholder="Department name" autocomplete="organization" required /></label>
+          <label><span>Manager</span><select name="managerId" id="dept-manager-select"><option value="">— Unassigned —</option></select></label>
+        </div>
+        <div class="modal-footer tasks-modal-actions">
+          <button type="submit" class="primary-button">Save Department</button>
+          <button id="cancel-department-form" type="button" class="ghost-button">Cancel</button>
         </div>
       </form>
     </div>

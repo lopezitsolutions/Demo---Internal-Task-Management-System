@@ -79,8 +79,12 @@ const elements = {
   toggleDepartmentForm: document.getElementById("toggle-department-form"),
   toggleNoteForm: document.getElementById("toggle-note-form"),
   toggleTaskForm: document.getElementById("toggle-task-form"),
-  userFormCard: document.getElementById("user-form-card"),
-  departmentFormCard: document.getElementById("department-form-card"),
+  userFormModal: document.getElementById("user-form-modal"),
+  departmentFormModal: document.getElementById("department-form-modal"),
+  closeUserFormModal: document.getElementById("close-user-form-modal"),
+  closeDeptFormModal: document.getElementById("close-dept-form-modal"),
+  userFormTitle: document.getElementById("user-form-title"),
+  deptFormTitle: document.getElementById("dept-form-title"),
   noteFormCard: document.getElementById("note-form-card"),
   taskFormCard: document.getElementById("task-form-card"),
   userForm: document.getElementById("user-form"),
@@ -431,11 +435,11 @@ function renderUsers(users) {
 function renderDepartments(departments) {
   renderList(elements.departmentsList, departments, (department) => {
     const manager = state.users.find(
-      (user) => user.id === department.managerId,
+      (user) => String(user.id) === String(department.managerId),
     );
     return createCard(`
       <div>
-        <p class="card-title">${department.name}</p>
+        <p class="card-title">${department.depName || department.name}</p>
         <p class="card-meta">Manager: ${manager?.nickname || "Unassigned"}</p>
         <div class="card-actions">
           <button class="secondary-button" data-action="edit-department" data-id="${department.id}">Edit</button>
@@ -816,6 +820,33 @@ async function resetPassword(event) {
   }
 }
 
+
+function openUserModal() {
+  state.editing.userId = null;
+  if (elements.userFormTitle) elements.userFormTitle.textContent = "Create User";
+  resetForm(elements.userForm);
+  elements.userFormModal?.classList.remove("hidden");
+}
+
+function closeUserModal() {
+  elements.userFormModal?.classList.add("hidden");
+  resetForm(elements.userForm);
+  state.editing.userId = null;
+}
+
+function openDepartmentModal() {
+  state.editing.departmentId = null;
+  if (elements.deptFormTitle) elements.deptFormTitle.textContent = "Create Department";
+  resetForm(elements.departmentForm);
+  elements.departmentFormModal?.classList.remove("hidden");
+}
+
+function closeDepartmentModal() {
+  elements.departmentFormModal?.classList.add("hidden");
+  resetForm(elements.departmentForm);
+  state.editing.departmentId = null;
+}
+
 function registerEvents() {
   elements.refreshButton?.addEventListener("click", loadDashboard);
   elements.refreshStatsButton?.addEventListener("click", loadStats);
@@ -854,10 +885,10 @@ function registerEvents() {
     }
   });
   elements.toggleUserForm?.addEventListener("click", () =>
-    toggleSection(elements.userFormCard),
+    openUserModal(),
   );
   elements.toggleDepartmentForm?.addEventListener("click", () =>
-    toggleSection(elements.departmentFormCard),
+    openDepartmentModal(),
   );
   elements.toggleNoteForm?.addEventListener("click", () =>
     toggleSection(elements.noteFormCard),
@@ -867,15 +898,22 @@ function registerEvents() {
   );
 
   elements.cancelUserForm?.addEventListener("click", () => {
-    elements.userFormCard.classList.add("hidden");
-    resetForm(elements.userForm);
-    state.editing.userId = null;
+    closeUserModal();
   });
 
   elements.cancelDepartmentForm?.addEventListener("click", () => {
-    elements.departmentFormCard.classList.add("hidden");
-    resetForm(elements.departmentForm);
-    state.editing.departmentId = null;
+    closeDepartmentModal();
+  });
+
+  elements.closeUserFormModal?.addEventListener("click", closeUserModal);
+  elements.closeDeptFormModal?.addEventListener("click", closeDepartmentModal);
+
+  // Close modals on backdrop click
+  elements.userFormModal?.addEventListener("click", (e) => {
+    if (e.target === elements.userFormModal) closeUserModal();
+  });
+  elements.departmentFormModal?.addEventListener("click", (e) => {
+    if (e.target === elements.departmentFormModal) closeDepartmentModal();
   });
 
   elements.cancelNoteForm?.addEventListener("click", () => {
@@ -918,7 +956,7 @@ async function handleUserSubmit(event) {
       body: JSON.stringify(payload),
     });
     resetForm(elements.userForm);
-    elements.userFormCard.classList.add("hidden");
+    closeUserModal();
     state.editing.userId = null;
     await loadUsers();
     await loadSummary();
@@ -941,7 +979,7 @@ async function handleDepartmentSubmit(event) {
       body: JSON.stringify(payload),
     });
     resetForm(elements.departmentForm);
-    elements.departmentFormCard.classList.add("hidden");
+    closeDepartmentModal();
     state.editing.departmentId = null;
     await loadDepartments();
     await loadSummary();
@@ -1007,8 +1045,10 @@ async function handleTaskSubmit(event) {
 }
 
 async function handleCardActions(event) {
-  const action = event.target.dataset.action;
-  const id = event.target.dataset.id;
+  const button = event.target.closest("[data-action]");
+  if (!button) return;
+  const action = button.dataset.action;
+  const id = button.dataset.id;
   if (!action || !id) return;
 
   switch (action) {
@@ -1077,32 +1117,30 @@ async function handleSelectChanges(event) {
 }
 
 async function editUser(userId) {
-  const user = state.users.find((item) => item.id === userId);
+  const user = state.users.find((item) => String(item.id) === String(userId));
   if (!user) return;
 
   state.editing.userId = user.id;
-  if (elements.userForm.name)
-    elements.userForm.name.value = user.nickname || "";
+  if (elements.userFormTitle) elements.userFormTitle.textContent = "Edit User";
   if (elements.userForm.email) elements.userForm.email.value = user.email || "";
-  if (elements.userForm.username)
-    elements.userForm.username.value = user.nickname || "";
+  if (elements.userForm.nickname) elements.userForm.nickname.value = user.nickname || "";
+  if (elements.userForm.phoneNum) elements.userForm.phoneNum.value = user.phoneNum || "";
   if (elements.userForm.role)
-    elements.userForm.role.value =
-      user.roleName || user.role?.name || "Employee";
+    elements.userForm.role.value = user.roleName || user.role?.name || "Employee";
   if (elements.userForm.departmentId)
-    elements.userForm.departmentId.value = user.depId || "";
-  if (elements.userForm.password) elements.userForm.password.value = "";
-  elements.userFormCard.classList.remove("hidden");
+    elements.userForm.departmentId.value = user.depId || user.department?.id || "";
+  elements.userFormModal.classList.remove("hidden");
 }
 
 async function editDepartment(departmentId) {
-  const department = state.departments.find((item) => item.id === departmentId);
+  const department = state.departments.find((item) => String(item.id) === String(departmentId));
   if (!department) return;
 
   state.editing.departmentId = department.id;
-  elements.departmentForm.name.value = department.name || "";
+  if (elements.deptFormTitle) elements.deptFormTitle.textContent = "Edit Department";
+  elements.departmentForm.name.value = department.name || department.depName || "";
   elements.departmentForm.managerId.value = department.managerId || "";
-  elements.departmentFormCard.classList.remove("hidden");
+  elements.departmentFormModal.classList.remove("hidden");
 }
 
 async function editNote(noteId) {
