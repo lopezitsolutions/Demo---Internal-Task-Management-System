@@ -1,6 +1,11 @@
 <!doctype html>
 <html lang="en">
   <head>
+  <!-- CRITICAL: Demo mode scripts MUST load first to intercept all API calls -->
+  <script src="../js/demo-data.js"></script>
+  <script src="../js/demo-store.js"></script>
+  <script src="../js/demo-mode.js"></script>
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:* http://localhost:* https:" />
@@ -17,28 +22,7 @@
         console.log("%c=========================================%c", "color: red; font-weight: bold; font-size: 14px;", "");
       }
     </script>
-    <!-- DEMO MODE BOOTSTRAP: Must run before auth guard -->
-    <script src="../js/demo-data.js"></script>
-    <script src="../js/demo-store.js"></script>
-    <script src="../js/demo-mode.js"></script>
 
-    <script>
-      // Auth check - redirect to login if no token and not in debug mode
-      // In demo mode, the demo scripts above will auto-login before this runs
-      (function() {
-        const isDebug = new URLSearchParams(window.location.search).get("debug") === "1";
-        if (isDebug) return;
-
-        // Demo mode is now bootstrapped synchronously by demo-mode.js
-        const isDemo = localStorage.getItem("itwmsDemoMode") === "1";
-        const hasToken = localStorage.getItem("authToken");
-
-        if (!hasToken && !isDemo) {
-          window.location.replace("/assets/html/login.html");
-          return; // Stop execution immediately
-        }
-      })();
-    </script>
   </head>
   <body>
     <div class="dashboard-shell">
