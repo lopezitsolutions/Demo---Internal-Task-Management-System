@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:* http://localhost:* https:"
+    />
+    <title>Users | ITWMS</title>
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/sidebar.css" />
+    <link rel="stylesheet" href="../css/dashboard.css" />
+    <link rel="stylesheet" href="../css/department.css" />
+    <link rel="stylesheet" href="../css/users.css" />
+    <link rel="stylesheet" href="../css/tasks.css" />
+    <script>
+      if (new URLSearchParams(window.location.search).get("debug") === "1") {
+        console.clear();
+        console.log(
+          "%c========== DEBUG MODE ENABLED ==========%c",
+          "color: red; font-weight: bold; font-size: 14px;",
+          "",
+        );
+        console.log(
+          "%cAuto-redirect is DISABLED. Check console for error details.%c",
+          "color: orange; font-size: 12px;",
+          "",
+        );
+        console.log(
+          "%c=========================================%c",
+          "color: red; font-weight: bold; font-size: 14px;",
+          "",
+        );
+      }
+    </script>
+    <!-- DEMO MODE BOOTSTRAP: Must run before auth guard -->
+    <script src="../js/demo-data.js"></script>
+    <script src="../js/demo-store.js"></script>
+    <script src="../js/demo-mode.js"></script>
+
+    <script>
+      // Auth check - redirect to login if no token and not in debug mode
+      // In demo mode, the demo scripts above will auto-login before this runs
+      (function() {
+        const isDebug = new URLSearchParams(window.location.search).get("debug") === "1";
+        if (isDebug) return;
+
+        // Demo mode is now bootstrapped synchronously by demo-mode.js
+        const isDemo = localStorage.getItem("itwmsDemoMode") === "1";
+        const hasToken = localStorage.getItem("authToken");
+
+        if (!hasToken && !isDemo) {
+          window.location.replace("/assets/html/login.html");
+          return; // Stop execution immediately
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="dashboard-shell">
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <div class="sidebar-user">
+            <p id="sidebar-username">Loading...</p>
+          </div>
+          <ul class="sidebar-menu">
+            <li>
+              <a href="dashboard.html" id="sidebar-dashboard">Dashboard</a>
+            </li>
+            <li>
+              <a
+                href="department.html"
+                id="sidebar-departments"
+                class="admin-only manager-only"
+                >Departments</a
+              >
+            </li>
+            <li>
+              <a href="users.html" id="sidebar-users" class="admin-only"
+                >Users</a
+              >
+            </li>
+            <li><a href="notes.html" id="sidebar-notes">Notes</a></li>
+            <li><a href="tasks.html" id="sidebar-tasks">Tasks</a></li>
+            <li>
+              <a href="audit.html" id="sidebar-audit" class="admin-only"
+                >Audit</a
+              >
+            </li>
+            <li><a href="#" id="sidebar-settings">Settings</a></li>
+          </ul>
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <header class="dashboard-header tasks-page-header">
+          <div style="display: flex; align-items: center">
+            <button class="menu-toggle" aria-label="Toggle Menu">
+              &#9776;
+            </button>
+            <div>
+              <p class="eyebrow">User management</p>
+              <h1>Users</h1>
+            </div>
+          </div>
+          <div class="header-actions">
+            <button id="create-user-btn" class="secondary-button" type="button">
+              Create user
+            </button>
+          </div>
+        </header>
+
+        <section class="tasks-table-section">
+          <article class="department-panel department-table-panel">
+            <div class="module-header">
+              <div>
+                <p class="module-label">Directory</p>
+                <h2>All users</h2>
+              </div>
+              <span id="users-count" class="column-count">0</span>
+            </div>
+            <div class="department-table-wrapper">
+              <table
+                class="department-table users-table tasks-table"
+                aria-label="Users"
+              >
+                <thead>
+                  <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Nickname</th>
+                    <th scope="col">Phone</th>
+                    <th scope="col">Department</th>
+                    <th scope="col">Role</th>
+                    <th scope="col">Updated</th>
+                    <th scope="col" class="department-table-actions">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="users-table-body"></tbody>
+              </table>
+            </div>
+            <div class="users-pagination" id="users-pagination" hidden>
+              <button type="button" id="users-prev-page" class="ghost-button">
+                Previous
+              </button>
+              <span id="users-page-info" class="meta-text"></span>
+              <button type="button" id="users-next-page" class="ghost-button">
+                Next
+              </button>
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <div
+        id="user-form-modal"
+        class="modal hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="user-form-title"
+      >
+        <div
+          class="modal-content tasks-modal-content tasks-modal-content--form"
+        >
+          <div class="modal-header">
+            <h3 id="user-form-title">Create user</h3>
+            <button
+              type="button"
+              id="close-user-form-modal"
+              class="close-button"
+              aria-label="Close"
+            >
+              &times;
+            </button>
+          </div>
+          <form id="user-form" class="tasks-modal-form">
+            <div class="form-grid users-form-grid">
+              <label>
+                Email
+                <input
+                  name="email"
+                  type="email"
+                  placeholder="user@example.com"
+                  autocomplete="email"
+                  required
+                />
+              </label>
+              <label>
+                Nickname
+                <input
+                  name="nickname"
+                  type="text"
+                  placeholder="Display name"
+                  autocomplete="name"
+                  required
+                />
+              </label>
+              <label>
+                Phone
+                <input
+                  name="phoneNum"
+                  type="tel"
+                  placeholder="09XXXXXXXXX"
+                  autocomplete="tel"
+                />
+              </label>
+              <label>
+                Department
+                <select name="depId" id="user-dep-select">
+                  <option value="">— None —</option>
+                </select>
+              </label>
+              <label class="users-form-span">
+                Role
+                <select name="roleId" id="user-role-select" required>
+                  <option value="1">Admin</option>
+                  <option value="2">Manager</option>
+                  <option value="3" selected>Employee</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="modal-actions tasks-modal-actions">
+              <button
+                type="submit"
+                class="primary-button"
+                id="user-form-submit"
+              >
+                Save user
+              </button>
+              <button id="cancel-user-form" type="button" class="ghost-button">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Account Settings</h3>
+          <button id="close-settings-modal" class="close-button">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <section class="settings-section">
+            <h4>Account Information</h4>
+            <div class="account-info">
+              <div class="info-item">
+                <label>Name</label>
+                <p id="modal-account-name">Loading...</p>
+              </div>
+              <div class="info-item">
+                <label>Email</label>
+                <p id="modal-account-email">Loading...</p>
+              </div>
+              <div class="info-item">
+                <label>Role</label>
+                <p id="modal-account-role">Loading...</p>
+              </div>
+              <div class="info-item">
+                <label>Department</label>
+                <p id="modal-account-department">Loading...</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="settings-section">
+            <h4>Password & Security</h4>
+            <div class="security-actions">
+              <button id="reset-password-btn" class="secondary-button">
+                Reset Password
+              </button>
+              <p class="help-text">
+                Click to receive a password reset link via email
+              </p>
+            </div>
+          </section>
+
+          <section class="settings-section">
+            <h4>Account Actions</h4>
+            <div class="account-actions">
+              <button id="signout-modal-btn" class="ghost-button">
+                Sign Out
+              </button>
+              <p class="help-text">Sign out of your account</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+
+    <script src="../js/api-base.js"></script>
+    <script src="../js/rbac.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/users.js"></script>
+  </body>
+</html>

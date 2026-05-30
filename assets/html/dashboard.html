@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:* http://localhost:* https:" />
+    <title>ITWMS Dashboard</title>
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/sidebar.css" />
+    <link rel="stylesheet" href="../css/dashboard.css" />
+    <script>
+      // Debug mode - check URL for ?debug=1 parameter
+      if (new URLSearchParams(window.location.search).get("debug") === "1") {
+        console.clear();
+        console.log("%c========== DEBUG MODE ENABLED ==========%c", "color: red; font-weight: bold; font-size: 14px;", "");
+        console.log("%cAuto-redirect is DISABLED. Check console for error details.%c", "color: orange; font-size: 12px;", "");
+        console.log("%c=========================================%c", "color: red; font-weight: bold; font-size: 14px;", "");
+      }
+    </script>
+    <!-- DEMO MODE BOOTSTRAP: Must run before auth guard -->
+    <script src="../js/demo-data.js"></script>
+    <script src="../js/demo-store.js"></script>
+    <script src="../js/demo-mode.js"></script>
+
+    <script>
+      // Auth check - redirect to login if no token and not in debug mode
+      // In demo mode, the demo scripts above will auto-login before this runs
+      (function() {
+        const isDebug = new URLSearchParams(window.location.search).get("debug") === "1";
+        if (isDebug) return;
+
+        // Demo mode is now bootstrapped synchronously by demo-mode.js
+        const isDemo = localStorage.getItem("itwmsDemoMode") === "1";
+        const hasToken = localStorage.getItem("authToken");
+
+        if (!hasToken && !isDemo) {
+          window.location.replace("/assets/html/login.html");
+          return; // Stop execution immediately
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="dashboard-shell">
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <div class="sidebar-user">
+            <p id="sidebar-username">Loading...</p>
+          </div>
+          <ul class="sidebar-menu">
+            <li><a href="dashboard.html" id="sidebar-dashboard">Dashboard</a></li>
+            <li><a href="department.html" id="sidebar-departments" class="admin-only manager-only">Departments</a></li>
+            <li><a href="users.html" id="sidebar-users" class="admin-only">Users</a></li>
+            <li><a href="notes.html" id="sidebar-notes">Notes</a></li>
+            <li><a href="tasks.html" id="sidebar-tasks">Tasks</a></li>
+            <li><a href="audit.html" id="sidebar-audit">Audit</a></li>
+            <li><a href="#" id="sidebar-settings">Settings</a></li>
+          </ul>
+        </nav>
+      </aside>
+      <main class="main-content">
+        <header class="dashboard-header">
+          <div style="display: flex; align-items: center;">
+            <button class="menu-toggle" aria-label="Toggle Menu">&#9776;</button>
+            <div>
+              <p class="eyebrow">Workspace Dashboard</p>
+              <h1 id="nickname">Loading profile...</h1>
+              <p id="current-role" class="meta-text"></p>
+            </div>
+          </div>
+        <div class="header-actions">
+        </div>
+      </header>
+
+      <section class="stats-section" aria-label="Dashboard statistics">
+        <div class="stats-toolbar">
+          <div>
+            <h2 class="stats-title">Statistics</h2>
+          </div>
+        </div>
+        <div id="stats-grid" class="stats-grid"></div>
+      </section>
+
+      <section class="modules-grid">
+        <section
+          class="module-panel admin-only hidden"
+          id="user-management-panel"
+        >
+          <div class="module-header">
+            <div>
+              <p class="module-label">Admin</p>
+              <h2>User Management</h2>
+            </div>
+            <button
+              id="toggle-user-form"
+              class="secondary-button"
+              type="button"
+            >
+              Create user
+            </button>
+          </div>
+
+          <div id="user-form-card" class="form-card hidden">
+            <form id="user-form">
+              <div class="form-grid">
+                <label>
+                  Name
+                  <input
+                    name="name"
+                    type="text"
+                    placeholder="Full name"
+                    required
+                  />
+                </label>
+                <label>
+                  Email
+                  <input
+                    name="email"
+                    type="email"
+                    placeholder="user@example.com"
+                    required
+                  />
+                </label>
+                <label>
+                  Role
+                  <select name="role" required>
+                    <option value="Admin">Admin</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Employee">Employee</option>
+                  </select>
+                </label>
+                <label>
+                  Department
+                  <select name="departmentId">
+                    <option value="">Unassigned</option>
+                  </select>
+                </label>
+                <label>
+                  Password
+                  <input
+                    name="password"
+                    type="password"
+                    placeholder="Create password"
+                  />
+                </label>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="primary-button">Save user</button>
+                <button
+                  id="cancel-user-form"
+                  type="button"
+                  class="ghost-button"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div id="users-list" class="list-grid"></div>
+        </section>
+
+        <section
+          class="module-panel admin-only manager-only hidden"
+          id="department-panel"
+        >
+          <div class="module-header">
+            <div>
+              <p class="module-label">Management</p>
+              <h2>Department Management</h2>
+            </div>
+            <button
+              id="toggle-department-form"
+              class="secondary-button"
+              type="button"
+            >
+              Create department
+            </button>
+          </div>
+
+          <div id="department-form-card" class="form-card hidden">
+            <form id="department-form">
+              <div class="form-grid">
+                <label>
+                  Department Name
+                  <input
+                    name="name"
+                    type="text"
+                    placeholder="Department name"
+                    required
+                  />
+                </label>
+                <label>
+                  Manager
+                  <select name="managerId">
+                    <option value="">Unassigned</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="primary-button">
+                  Save department
+                </button>
+                <button
+                  id="cancel-department-form"
+                  type="button"
+                  class="ghost-button"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div id="department-list" class="list-grid"></div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Account Settings</h3>
+          <button id="close-settings-modal" class="close-button">&times;</button>
+        </div>
+        <div class="modal-body">
+          <section class="settings-section">
+            <h4>Account Information</h4>
+            <div class="account-info">
+              <div class="info-item">
+                <label>Name</label>
+                <p id="modal-account-name">Loading...</p>
+              </div>
+              <div class="info-item">
+                <label>Email</label>
+                <p id="modal-account-email">Loading...</p>
+              </div>
+              <div class="info-item">
+                <label>Role</label>
+                <p id="modal-account-role">Loading...</p>
+              </div>
+              <div class="info-item">
+                <label>Department</label>
+                <p id="modal-account-department">Loading...</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="settings-section">
+            <h4>Password & Security</h4>
+            <div class="security-actions">
+              <button id="reset-password-btn" class="secondary-button">
+                Reset Password
+              </button>
+              <p class="help-text">Click to receive a password reset link via email</p>
+            </div>
+          </section>
+
+          <section class="settings-section">
+            <h4>Account Actions</h4>
+            <div class="account-actions">
+              <button id="signout-modal-btn" class="ghost-button">
+                Sign Out
+              </button>
+              <p class="help-text">Sign out of your account</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reset Password Modal -->
+    <div id="reset-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4>Reset Password</h4>
+          <button id="close-reset-modal" class="close-button">&times;</button>
+        </div>
+        <form id="reset-password-form">
+          <label>
+            Email
+            <input type="text" name="identifier" required />
+          </label>
+          <p class="help-text">
+            Enter your email address to receive a reset link.
+          </p>
+          <div class="modal-actions">
+            <button type="button" id="cancel-reset" class="ghost-button">Cancel</button>
+            <button type="submit" class="primary-button">Send reset link</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="../js/api-base.js"></script>
+    <script src="../js/rbac.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/dashboard.js"></script>
+  </body>
+</html>

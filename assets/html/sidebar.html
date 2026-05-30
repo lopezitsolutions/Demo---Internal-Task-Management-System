@@ -1,0 +1,52 @@
+<aside class="sidebar">
+  <nav class="sidebar-nav">
+    <div class="sidebar-user">
+      <p id="sidebar-username">Loading...</p>
+    </div>
+    <ul class="sidebar-menu">
+      <!-- Accessible by all roles -->
+      <li data-role="Admin,Manager,Employee">
+        <a href="dashboard.html" id="sidebar-dashboard" data-module="dashboard"
+          >Dashboard</a
+        >
+      </li>
+
+      <!-- Admin only -->
+      <li data-role="Admin">
+        <a href="users.html" id="sidebar-users" data-module="users">Users</a>
+      </li>
+
+      <!-- Admin and Manager -->
+      <li data-role="Admin,Manager">
+        <a
+          href="department.html"
+          id="sidebar-department"
+          data-module="department"
+          >Department</a
+        >
+      </li>
+
+      <!-- All roles (tasks page filters by role) -->
+      <li data-role="Admin,Manager,Employee">
+        <a href="tasks.html" id="sidebar-tasks" data-module="tasks">Tasks</a>
+      </li>
+
+      <!-- Admin and Manager only -->
+      <li data-role="Admin,Manager">
+        <a href="notes.html" id="sidebar-notes" data-module="notes">Notes</a>
+      </li>
+
+      <!-- Admin only -->
+      <li data-role="Admin">
+        <a href="audit.html" id="sidebar-audit" data-module="audit">Audit</a>
+      </li>
+
+      <!-- All roles -->
+      <li data-role="Admin,Manager,Employee">
+        <a href="settings.html" id="sidebar-settings" data-module="settings"
+          >Settings</a
+        >
+      </li>
+    </ul>
+  </nav>
+</aside>

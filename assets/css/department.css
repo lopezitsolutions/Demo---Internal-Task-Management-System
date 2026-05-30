@@ -1,0 +1,263 @@
+/* ===== Department Grid Layout ===== */
+.department-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+@media (min-width: 768px) {
+  .department-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .department-grid {
+    grid-template-columns: minmax(320px, 2fr) minmax(300px, 1fr);
+    gap: 24px;
+    margin-top: 24px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .department-grid {
+    grid-template-columns: minmax(400px, 2.5fr) minmax(350px, 1fr);
+    gap: 24px;
+  }
+}
+
+.department-panel {
+  padding: 16px;
+  border-radius: var(--radius);
+  background: rgba(12, 18, 32, 0.96);
+  border: 1px solid var(--border);
+}
+
+@media (min-width: 640px) {
+  .department-panel {
+    padding: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .department-panel {
+    padding: 24px;
+  }
+}
+
+.department-panel.department-form-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.module-label {
+  margin: 0;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+}
+
+.department-panel h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.column-count {
+  display: inline-flex;
+  min-width: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.list-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.department-table-wrapper {
+  overflow-x: auto;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(18, 26, 46, 0.95);
+}
+
+.department-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.department-table thead th {
+  text-align: left;
+  padding: 12px 14px;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.72rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
+}
+
+.department-table tbody td {
+  padding: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: top;
+}
+
+.department-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.department-table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.department-table-desc {
+  max-width: 120px;
+  color: var(--muted);
+}
+
+@media (min-width: 640px) {
+  .department-table-desc {
+    max-width: 150px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .department-table-desc {
+    max-width: 280px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .department-table-desc {
+    max-width: 350px;
+  }
+}
+
+.department-table-meta {
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.department-table-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+th.department-table-actions {
+  text-align: right;
+}
+
+.table-action-btn {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+
+.department-table-empty td {
+  text-align: center;
+  color: var(--muted);
+  padding: 28px 16px;
+}
+
+.department-card {
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(18, 26, 46, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.department-card h3 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+}
+
+.department-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.department-card .card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.form-card {
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(18, 26, 46, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.form-grid {
+  display: grid;
+  gap: 16px;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-family: inherit;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 88px;
+}
+
+.description-field textarea {
+  min-height: 100px;
+}
+
+@media (max-width: 980px) {
+  .department-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboard-shell {
+    padding: 0 10px;
+  }
+
+  .dashboard-header,
+  .department-panel,
+  .form-card {
+    padding: 20px;
+  }
+}

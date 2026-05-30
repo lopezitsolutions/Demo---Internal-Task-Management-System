@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:* http://localhost:* https:"
+    />
+    <title>Settings | ITWMS</title>
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/sidebar.css" />
+    <link rel="stylesheet" href="../css/settings.css" />
+    <script>
+      // Debug mode - check URL for ?debug=1 parameter
+      if (new URLSearchParams(window.location.search).get("debug") === "1") {
+        console.clear();
+        console.log(
+          "%c========== DEBUG MODE ENABLED ==========%c",
+          "color: red; font-weight: bold; font-size: 14px;",
+          "",
+        );
+        console.log(
+          "%cAuto-redirect is DISABLED. Check console for error details.%c",
+          "color: orange; font-size: 12px;",
+          "",
+        );
+        console.log(
+          "%c=========================================%c",
+          "color: red; font-weight: bold; font-size: 14px;",
+          "",
+        );
+      }
+    </script>
+    <!-- DEMO MODE BOOTSTRAP: Must run before auth guard -->
+    <script src="../js/demo-data.js"></script>
+    <script src="../js/demo-store.js"></script>
+    <script src="../js/demo-mode.js"></script>
+
+    <script>
+      // Auth check - redirect to login if no token and not in debug mode
+      // In demo mode, the demo scripts above will auto-login before this runs
+      (function() {
+        const isDebug = new URLSearchParams(window.location.search).get("debug") === "1";
+        if (isDebug) return;
+
+        // Demo mode is now bootstrapped synchronously by demo-mode.js
+        const isDemo = localStorage.getItem("itwmsDemoMode") === "1";
+        const hasToken = localStorage.getItem("authToken");
+
+        if (!hasToken && !isDemo) {
+          window.location.replace("/assets/html/login.html");
+          return; // Stop execution immediately
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="dashboard-shell">
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <div class="sidebar-user">
+            <p id="sidebar-username">Loading...</p>
+          </div>
+          <ul class="sidebar-menu">
+            <li>
+              <a href="dashboard.html" id="sidebar-dashboard">Dashboard</a>
+            </li>
+            <li>
+              <a
+                href="department.html"
+                id="sidebar-departments"
+                class="admin-only manager-only"
+                >Departments</a
+              >
+            </li>
+            <li>
+              <a href="users.html" id="sidebar-users" class="admin-only"
+                >Users</a
+              >
+            </li>
+            <li><a href="notes.html" id="sidebar-notes">Notes</a></li>
+            <li><a href="tasks.html" id="sidebar-tasks">Tasks</a></li>
+            <li>
+              <a href="audit.html" id="sidebar-audit" class="admin-only"
+                >Audit</a
+              >
+            </li>
+            <li><a href="settings.html" id="sidebar-settings">Settings</a></li>
+          </ul>
+        </nav>
+      </aside>
+      <main class="main-content">
+        <header class="dashboard-header">
+          <div style="display: flex; align-items: center">
+            <button class="menu-toggle" aria-label="Toggle Menu">
+              &#9776;
+            </button>
+            <div>
+              <p class="eyebrow">Account Settings</p>
+              <h1>Manage Your Account</h1>
+              <p class="meta-text">
+                Update your account information and preferences
+              </p>
+            </div>
+          </div>
+        </header>
+
+        <section class="settings-grid">
+          <article class="settings-card">
+            <h2>Account Information</h2>
+            <div class="account-info">
+              <div class="info-item">
+                <label>Name</label>
+                <p id="account-name">Loading...</p>
+              </div>
+              <div class="info-item">
+                <label>Email</label>
+                <p id="account-email">Loading...</p>
+              </div>
+              <div class="info-item">
+                <label>Role</label>
+                <p id="account-role">Loading...</p>
+              </div>
+              <div class="info-item">
+                <label>Department</label>
+                <p id="account-department">Loading...</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="settings-card">
+            <h2>Password & Security</h2>
+            <div class="security-actions">
+              <button id="reset-password-btn" class="secondary-button">
+                Reset Password
+              </button>
+              <p class="help-text">
+                Click to receive a password reset link via email
+              </p>
+            </div>
+          </article>
+
+          <article class="settings-card">
+            <h2>Account Actions</h2>
+            <div class="account-actions">
+              <button id="signout-bottom-btn" class="ghost-button">
+                Sign Out of All Devices
+              </button>
+              <p class="help-text">
+                This will sign you out from all devices where you're logged in
+              </p>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <!-- Reset Password Modal -->
+    <div id="reset-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Reset Password</h3>
+          <button id="close-reset-modal" class="close-button">&times;</button>
+        </div>
+        <form id="reset-password-form">
+          <label>
+            Email
+            <input type="text" name="identifier" required />
+          </label>
+          <p class="help-text">
+            Enter your email address to receive a reset link.
+          </p>
+          <div class="modal-actions">
+            <button type="button" id="cancel-reset" class="ghost-button">
+              Cancel
+            </button>
+            <button type="submit" class="primary-button">
+              Send reset link
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+
+    <script src="../js/api-base.js"></script>
+    <script src="../js/rbac.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/settings.js"></script>
+  </body>
+</html>

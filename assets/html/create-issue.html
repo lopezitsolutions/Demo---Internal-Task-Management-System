@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Issue | ITWMS</title>
+    <link rel="stylesheet" href="../css/create.css" />
+    <!-- DEMO MODE BOOTSTRAP: Must run before auth guard -->
+    <script src="../js/demo-data.js"></script>
+    <script src="../js/demo-store.js"></script>
+    <script src="../js/demo-mode.js"></script>
+
+    <script>
+      // Auth check - redirect to login if no token and not in debug mode
+      // In demo mode, the demo scripts above will auto-login before this runs
+      (function() {
+        const isDebug = new URLSearchParams(window.location.search).get("debug") === "1";
+        if (isDebug) return;
+
+        // Demo mode is now bootstrapped synchronously by demo-mode.js
+        const isDemo = localStorage.getItem("itwmsDemoMode") === "1";
+        const hasToken = localStorage.getItem("authToken");
+
+        if (!hasToken && !isDemo) {
+          window.location.replace("/assets/html/login.html");
+          return; // Stop execution immediately
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="create-shell">
+      <header class="create-header">
+        <div>
+          <p class="eyebrow">Issue tracker</p>
+          <h1>Create issue</h1>
+          <p class="meta-text">
+            Log a new task with project, type, priority, and assignee details.
+          </p>
+        </div>
+        <div class="header-actions">
+          <a class="secondary-button" href="dashboard.html"
+            >Back to dashboard</a
+          >
+          <button class="primary-button" type="button" id="create-issue-submit">
+            Create issue
+          </button>
+        </div>
+      </header>
+
+      <section class="create-grid">
+        <main class="create-main">
+          <div class="form-card">
+            <div class="form-section">
+              <div class="section-header">
+                <div>
+                  <p class="section-label">Issue details</p>
+                  <h2>Describe the work</h2>
+                </div>
+                <span class="section-badge">Required</span>
+              </div>
+
+              <form id="create-issue-form" class="issue-form" novalidate>
+                <div class="form-grid">
+                  <label>
+                    <span>Project</span>
+                    <select name="project" required>
+                      <option value="ITWMS">ITWMS</option>
+                      <option value="Platform">Platform</option>
+                      <option value="Support">Support</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>Issue type</span>
+                    <select name="issueType" required>
+                      <option value="Task">Task</option>
+                      <option value="Bug">Bug</option>
+                      <option value="Story">Story</option>
+                      <option value="Epic">Epic</option>
+                    </select>
+                  </label>
+
+                  <label class="full-width">
+                    <span>Summary</span>
+                    <input
+                      name="summary"
+                      type="text"
+                      placeholder="Summarize the issue in one line"
+                      required
+                    />
+                  </label>
+
+                  <label class="full-width">
+                    <span>Description</span>
+                    <textarea
+                      name="description"
+                      rows="8"
+                      placeholder="Add a description, acceptance criteria, or helpful context"
+                    ></textarea>
+                  </label>
+
+                  <label>
+                    <span>Priority</span>
+                    <select name="priority">
+                      <option value="Medium">Medium</option>
+                      <option value="Highest">Highest</option>
+                      <option value="High">High</option>
+                      <option value="Low">Low</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>Assignee</span>
+                    <select name="assignee">
+                      <option value="Unassigned">Unassigned</option>
+                      <option value="alice">Alice Johnson</option>
+                      <option value="brad">Brad Lee</option>
+                      <option value="maria">Maria Chen</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>Reporter</span>
+                    <input
+                      name="reporter"
+                      type="text"
+                      placeholder="Your name"
+                      value="Current user"
+                    />
+                  </label>
+
+                  <label>
+                    <span>Due date</span>
+                    <input name="dueDate" type="date" />
+                  </label>
+
+                  <label>
+                    <span>Labels</span>
+                    <input
+                      name="labels"
+                      type="text"
+                      placeholder="e.g. frontend, api, urgent"
+                    />
+                  </label>
+
+                  <label class="full-width">
+                    <span>Attachment</span>
+                    <div class="file-field">
+                      <input
+                        id="attachment-input"
+                        name="attachment"
+                        type="file"
+                      />
+                      <span id="attachment-label">Choose file</span>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="form-actions">
+                  <button type="submit" class="primary-button">
+                    Create issue
+                  </button>
+                  <button type="button" class="ghost-button" id="cancel-create">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </main>
+
+        <aside class="create-aside">
+          <div class="panel-card">
+            <p class="section-label">Tip</p>
+            <h3>Use clear titles</h3>
+            <p>
+              Short summaries help teammates scan and prioritize work faster.
+            </p>
+          </div>
+
+          <div class="panel-card">
+            <p class="section-label">Quick fields</p>
+            <ul class="mini-list">
+              <li>
+                <strong>Project:</strong> Connect issues to the right board.
+              </li>
+              <li><strong>Assignee:</strong> Assign the owner immediately.</li>
+              <li><strong>Priority:</strong> Mark high-impact work clearly.</li>
+            </ul>
+          </div>
+
+          <div class="panel-card preview-panel">
+            <p class="section-label">Preview</p>
+            <div class="preview-chip">Task • ITWMS</div>
+            <p class="preview-summary">
+              When you create a task, it will appear on the backlog and be
+              visible to your team.
+            </p>
+          </div>
+        </aside>
+      </section>
+    </div>
+
+    <script src="../js/api-base.js"></script>
+    <script src="../js/rbac.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/create-issue.js"></script>
+  </body>
+</html>

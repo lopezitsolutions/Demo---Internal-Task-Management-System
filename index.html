@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ITWMS Demo</title>
+  <link rel="stylesheet" href="assets/css/main.css" />
+
+  <style>
+    .demo-page {
+      min-height: calc(100vh - 32px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .demo-card {
+      width: 100%;
+      max-width: 900px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 48px;
+      text-align: center;
+      backdrop-filter: blur(12px);
+    }
+
+    .demo-title {
+      font-size: 3rem;
+      margin: 0;
+      margin-bottom: 12px;
+    }
+
+    .demo-subtitle {
+      color: var(--muted);
+      margin-bottom: 48px;
+      font-size: 1.1rem;
+    }
+
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .role-card {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 28px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .role-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+      box-shadow: 0 12px 30px rgba(92,127,255,.15);
+    }
+
+    .role-icon {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+    }
+
+    .role-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .role-description {
+      color: var(--muted);
+      font-size: .95rem;
+      line-height: 1.5;
+    }
+
+    .demo-footer {
+      margin-top: 40px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    @media (max-width: 768px) {
+      .role-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .demo-card {
+        padding: 24px;
+      }
+
+      .demo-title {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="demo-page">
+    <div class="demo-card">
+
+      <h1 class="demo-title">
+        ITWMS Demo
+      </h1>
+
+      <p class="demo-subtitle">
+        Explore the platform using different user roles.
+      </p>
+
+      <div class="role-grid">
+
+        <div class="role-card" onclick="enterDemo('Admin')">
+          <div class="role-icon">👑</div>
+          <div class="role-title">Administrator</div>
+          <div class="role-description">
+            Full access to users, departments, tasks,
+            notes, audits and settings.
+          </div>
+        </div>
+
+        <div class="role-card" onclick="enterDemo('Manager')">
+          <div class="role-icon">📊</div>
+          <div class="role-title">Manager</div>
+          <div class="role-description">
+            Manage departmental tasks, notes,
+            approvals and team activities.
+          </div>
+        </div>
+
+        <div class="role-card" onclick="enterDemo('Employee')">
+          <div class="role-icon">🧑‍💼</div>
+          <div class="role-title">Employee</div>
+          <div class="role-description">
+            View assigned work, update progress,
+            manage personal tasks and notes.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="demo-footer">
+        Demo Environment • Static Data • No Backend
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    function enterDemo(role) {
+      const users = {
+        Admin: {
+          id: 1,
+          nickname: "Alex Admin",
+          email: "admin@itwms.demo",
+          roleName: "Admin",
+          depName: "Operations",
+          department: { id: 1, name: "Operations" },
+          role: { id: 1, name: "Admin" }
+        },
+        Manager: {
+          id: 2,
+          nickname: "Maria Manager",
+          email: "manager@itwms.demo",
+          roleName: "Manager",
+          depName: "Operations",
+          department: { id: 1, name: "Operations" },
+          role: { id: 2, name: "Manager" }
+        },
+        Employee: {
+          id: 4,
+          nickname: "Sarah Dev",
+          email: "sarah@itwms.demo",
+          roleName: "Employee",
+          depName: "Engineering",
+          department: { id: 2, name: "Engineering" },
+          role: { id: 3, name: "Employee" }
+        }
+      };
+
+      const user = users[role];
+
+      // Set all required auth state BEFORE redirecting so the HTML auth check passes
+      localStorage.setItem("authToken", "demo-token-" + Date.now());
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("demoUser", JSON.stringify(user));
+      localStorage.setItem("demoRole", role);
+      localStorage.setItem("itwmsDemoMode", "1");
+
+      window.location.href = "assets/html/dashboard.html";
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,355 @@
+/* ===== Notes Section ===== */
+.notes-section {
+  margin-top: 24px;
+}
+
+/* ===== Filter Tabs ===== */
+.notes-filter-tabs {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0 24px 0;
+  border-bottom: 2px solid var(--border);
+}
+
+.filter-tab {
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  position: relative;
+  margin-bottom: -2px;
+}
+
+.filter-tab:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.filter-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.tab-icon {
+  font-size: 1.1rem;
+}
+
+/* ===== Loading State ===== */
+.notes-loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+  color: var(--muted);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* ===== Empty State ===== */
+.notes-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 12px;
+  color: var(--muted);
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  opacity: 0.6;
+}
+
+.empty-state-message {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 0;
+  color: var(--text);
+  text-align: center;
+}
+
+.empty-state-hint {
+  font-size: 0.9rem;
+  margin: 0;
+  text-align: center;
+  opacity: 0.8;
+}
+
+/* ===== Error State ===== */
+.notes-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+  background: rgba(255, 127, 127, 0.05);
+  border: 1px solid rgba(255, 127, 127, 0.2);
+  border-radius: 8px;
+  margin-top: 24px;
+}
+
+.error-icon {
+  font-size: 2.5rem;
+  opacity: 0.8;
+}
+
+.error-message {
+  font-size: 0.95rem;
+  margin: 0;
+  color: rgba(255, 127, 127, 0.8);
+  text-align: center;
+  max-width: 400px;
+}
+
+.notes-error-state button {
+  margin-top: 8px;
+}
+
+/* ===== List Grid ===== */
+.list-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+@media (min-width: 640px) {
+  .list-grid {
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .list-grid {
+    grid-template-columns: repeat(3, minmax(300px, 1fr));
+    gap: 18px;
+    margin-top: 24px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .list-grid {
+    grid-template-columns: repeat(4, minmax(320px, 1fr));
+    gap: 20px;
+  }
+}
+
+.note-item {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.note-content h3 {
+  margin: 0;
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  color: var(--text);
+}
+
+.note-description {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 10px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .note-description {
+    font-size: 0.95rem;
+    margin: 12px 0;
+  }
+}
+
+.note-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.note-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.note-meta-item strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.note-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.note-actions button {
+  flex: 1;
+  padding: 8px;
+  font-size: 0.85rem;
+}
+
+/* Status colors for notes */
+.status-active {
+  background: rgba(124, 227, 211, 0.18);
+  color: #7ce3d3;
+}
+
+.status-archived {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+}
+
+/* Selected note */
+.note-item.selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* ===== Overdue Highlight ===== */
+.overdue-item {
+  border: 2px solid #ef4444 !important;
+  background-color: rgba(239, 68, 68, 0.05) !important;
+}
+
+.note-item.selected.overdue-item {
+  box-shadow: 0 0 0 2px #ef4444;
+}
+
+/* Tasks section */
+.tasks-section {
+  margin-top: 24px;
+}
+
+.task-item {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.task-header h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--text);
+}
+
+.task-description {
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 12px 0;
+}
+
+.task-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.task-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-meta-item strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* Status badges for tasks */
+.status-pending {
+  background: rgba(255, 193, 7, 0.18);
+  color: #ffc107;
+}
+
+.status-in-progress {
+  background: rgba(0, 123, 255, 0.18);
+  color: #007bff;
+}
+
+.status-completed {
+  background: rgba(40, 167, 69, 0.18);
+  color: #28a745;
+}
+
+.priority-low {
+  background: rgba(108, 117, 125, 0.18);
+  color: #6c757d;
+}
+
+.priority-medium {
+  background: rgba(255, 193, 7, 0.18);
+  color: #ffc107;
+}
+
+.priority-high {
+  background: rgba(220, 53, 69, 0.18);
+  color: #dc3545;
+}
+
+.meta-text.error {
+  color: var(--danger);
+}

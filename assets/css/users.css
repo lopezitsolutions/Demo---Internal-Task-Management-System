@@ -1,0 +1,96 @@
+/* ===== Users Table Responsive Styles ===== */
+.users-table .department-table-desc,
+.users-table td.users-cell-email {
+  max-width: 100px;
+  word-break: break-word;
+  white-space: normal;
+}
+
+@media (min-width: 640px) {
+  .users-table .department-table-desc,
+  .users-table td.users-cell-email {
+    max-width: 150px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .users-table .department-table-desc,
+  .users-table td.users-cell-email {
+    max-width: 200px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .users-table .department-table-desc,
+  .users-table td.users-cell-email {
+    max-width: 280px;
+  }
+}
+
+.users-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (min-width: 640px) {
+  .users-pagination {
+    gap: 16px;
+    margin-top: 18px;
+  }
+}
+
+.users-pagination[hidden] {
+  display: none !important;
+}
+
+/* ===== Users Form Responsive ===== */
+.users-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 640px) {
+  .users-form-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (min-width: 840px) {
+  .users-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+
+.users-form-span {
+  grid-column: 1 / -1;
+}
+
+/* ===== Tables - Responsive wrapper ===== */
+.tasks-table-section {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 640px) {
+  .department-table thead th:nth-child(n + 3),
+  .department-table tbody td:nth-child(n + 3) {
+    display: none;
+  }
+
+  .department-table thead th:first-child {
+    min-width: 120px;
+  }
+
+  .department-table tbody td:first-child {
+    min-width: 120px;
+  }
+}
