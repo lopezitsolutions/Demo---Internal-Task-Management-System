@@ -101,25 +101,32 @@
           </button>
         </div>
 
-        <div id="note-form-card" class="form-card hidden">
-          <form id="note-form">
-            <div class="form-grid">
-              <label><span>Note Name</span><input name="noteName" type="text" placeholder="Note name" required /></label>
-              <label><span>Department</span><select name="depId" required><option value="">Select department</option></select></label>
-              <label><span>Due Date</span><input name="dueDate" type="date" required /></label>
-              <label><span>Status</span>
-                <select name="status" required>
-                  <option value="Active">Active</option>
-                  <option value="Archived">Archived</option>
-                </select>
-              </label>
-              <label class="full-width"><span>Description</span><textarea name="description" rows="4" placeholder="Note description"></textarea></label>
+        <!-- Note Form Modal -->
+        <div id="note-form-card" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="note-form-title">
+          <div class="modal-content tasks-modal-content tasks-modal-content--form">
+            <div class="modal-header">
+              <h3 id="note-form-title">Create Note</h3>
+              <button type="button" id="close-note-form-modal" class="close-button" data-modal-close aria-label="Close">&times;</button>
             </div>
-            <div class="form-actions">
-              <button type="submit" class="primary-button">Save Note</button>
-              <button id="cancel-note-form" type="button" class="ghost-button">Cancel</button>
-            </div>
-          </form>
+            <form id="note-form" class="tasks-modal-form">
+              <div class="form-grid tasks-form-grid">
+                <label class="tasks-form-span"><span>Note Name</span><input name="noteName" type="text" placeholder="Note name" required /></label>
+                <label><span>Department</span><select name="depId" required><option value="">Select department</option></select></label>
+                <label><span>Due Date</span><input name="dueDate" type="date" required /></label>
+                <label><span>Status</span>
+                  <select name="status" required>
+                    <option value="Active">Active</option>
+                    <option value="Archived">Archived</option>
+                  </select>
+                </label>
+                <label class="tasks-form-span"><span>Description</span><textarea name="description" rows="4" placeholder="Note description"></textarea></label>
+              </div>
+              <div class="modal-footer tasks-modal-actions">
+                <button type="submit" class="primary-button">Save Note</button>
+                <button id="cancel-note-form" type="button" class="ghost-button">Cancel</button>
+              </div>
+            </form>
+          </div>
         </div>
 
         <div id="notes-list" class="list-grid"></div>

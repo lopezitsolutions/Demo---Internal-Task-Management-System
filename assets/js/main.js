@@ -402,6 +402,27 @@
     }, 300);
   }
 
+
+  // ===== Generic Modal Close Handler =====
+  // Handles close buttons for all modals that don't have their own JS handler
+  document.addEventListener("click", (e) => {
+    const closeBtn = e.target.closest("[data-modal-close]");
+    if (!closeBtn) return;
+
+    const modal = closeBtn.closest(".modal");
+    if (!modal) return;
+
+    // Try to find the cancel button in the same modal and trigger its click
+    const cancelBtn = modal.querySelector("[data-modal-cancel], .modal-footer .ghost-button, .tasks-modal-actions .ghost-button");
+    if (cancelBtn) {
+      cancelBtn.click();
+    } else {
+      // Fallback: just hide the modal
+      modal.classList.add("hidden");
+      document.body.style.overflow = "";
+    }
+  });
+
   // ===== Initialize =====
   function init() {
     initSidebar();
