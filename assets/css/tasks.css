@@ -516,6 +516,12 @@
 .status-badge-rejected { background: var(--danger-soft); color: var(--danger); }
 .status-badge-cancelled { background: rgba(255,255,255,0.06); color: var(--text-disabled); }
 
+
+.task-collab-remove {
+  padding: 4px 10px;
+  font-size: 0.75rem;
+}
+
 /* ===== Responsive ===== */
 @media (min-width: 640px) {
   .tasks-form-grid {
