@@ -1,348 +1,222 @@
 <!doctype html>
 <html lang="en">
-  <head>
-  <!-- CRITICAL: Demo mode scripts MUST load first to intercept all API calls -->
+<head>
   <script src="../js/demo-data.js"></script>
   <script src="../js/demo-store.js"></script>
   <script src="../js/demo-mode.js"></script>
 
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:* http://localhost:* https:"
-    />
-    <title>ITWMS Audit Trails</title>
-    <link rel="stylesheet" href="../css/main.css" />
-    <link rel="stylesheet" href="../css/sidebar.css" />
-    <link rel="stylesheet" href="../css/dashboard.css" />
-    <link rel="stylesheet" href="../css/audit.css" />
-    <script>
-      // Debug mode - check URL for ?debug=1 parameter
-      if (new URLSearchParams(window.location.search).get("debug") === "1") {
-        console.clear();
-        console.log(
-          "%c========== DEBUG MODE ENABLED ==========%c",
-          "color: red; font-weight: bold; font-size: 14px;",
-          "",
-        );
-        console.log(
-          "%cAuto-redirect is DISABLED. Check console for error details.%c",
-          "color: orange; font-size: 12px;",
-          "",
-        );
-        console.log(
-          "%c=========================================%c",
-          "color: red; font-weight: bold; font-size: 14px;",
-          "",
-        );
-      }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <meta name="theme-color" content="#08111f" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="ITWMS - Audit Trails" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:* http://localhost:* https:; img-src 'self' data:; font-src 'self' data:;" />
 
-  </head>
-  <body>
-    <div class="dashboard-shell">
-      <aside class="sidebar">
-        <button class="sidebar-close" aria-label="Close sidebar">×</button>
-        <nav class="sidebar-nav">
-          <div class="sidebar-user">
-            <p id="sidebar-username">Loading...</p>
-          </div>
-          <ul class="sidebar-menu">
-            <li>
-              <a href="dashboard.html" id="sidebar-dashboard">Dashboard</a>
-            </li>
-            <li>
-              <a
-                href="department.html"
-                id="sidebar-departments"
-                class="admin-only manager-only"
-                >Departments</a
-              >
-            </li>
-            <li>
-              <a href="users.html" id="sidebar-users" class="admin-only"
-                >Users</a
-              >
-            </li>
-            <li><a href="notes.html" id="sidebar-notes">Notes</a></li>
-            <li><a href="tasks.html" id="sidebar-tasks">Tasks</a></li>
-            <li><a href="audit.html" id="sidebar-audit">Audit</a></li>
-            <li><a href="#" id="sidebar-settings">Settings</a></li>
-          </ul>
-        </nav>
-      </aside>
-      <main class="main-content">
-        <header class="dashboard-header tasks-page-header">
-          <div style="display: flex; align-items: center">
-            <button class="menu-toggle" aria-label="Toggle Menu">
-              &#9776;
-            </button>
-            <div>
-              <p class="eyebrow">Audit trails</p>
-              <h1>Audit Logs</h1>
-            </div>
-          </div>
-        </header>
+  <title>Audit | ITWMS</title>
 
-        <section class="tasks-table-section">
-          <article class="department-panel department-table-panel">
-            <div class="module-header audit-module-header">
-              <div></div>
-              <div class="audit-header-actions">
-                <span id="audit-count" class="column-count">0</span>
-                <div class="audit-search-box">
-                  <input
-                    type="search"
-                    id="audit-search-filter"
-                    placeholder="Search..."
-                    aria-label="Search audit logs"
-                  />
-                </div>
-                <button
-                  type="button"
-                  id="audit-open-filters-btn"
-                  class="ghost-button audit-open-filters-btn"
-                >
-                  Filters ⚙️
-                </button>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/sidebar.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <link rel="stylesheet" href="../css/audit.css" />
+
+  <script>
+    if (new URLSearchParams(window.location.search).get("debug") === "1") {
+      console.clear();
+      console.log("%c DEBUG MODE ENABLED ", "background: #ef4444; color: white; font-weight: bold; padding: 4px 8px; border-radius: 4px;");
+    }
+  </script>
+</head>
+<body>
+  <button class="menu-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar-nav">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+
+  <div class="sidebar-overlay" aria-hidden="true"></div>
+
+  <div class="dashboard-shell">
+    <aside class="sidebar" id="sidebar-nav" role="navigation" aria-label="Main navigation">
+      <button class="sidebar-close" aria-label="Close navigation menu">&times;</button>
+
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">IT</div>
+        <span class="sidebar-brand-text">ITWMS</span>
+      </div>
+
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="sidebar-user-avatar">U</div>
+        <div class="sidebar-user-info">
+          <p class="sidebar-user-name" id="sidebar-username">Loading...</p>
+          <p class="sidebar-user-role" id="sidebar-user-role">Loading...</p>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul class="sidebar-menu">
+          <li><a href="dashboard.html" id="sidebar-dashboard"><span class="menu-icon">📊</span><span>Dashboard</span></a></li>
+          <li class="admin-only manager-only"><a href="department.html" id="sidebar-departments"><span class="menu-icon">🏢</span><span>Departments</span></a></li>
+          <li class="admin-only"><a href="users.html" id="sidebar-users"><span class="menu-icon">👥</span><span>Users</span></a></li>
+          <li><a href="notes.html" id="sidebar-notes"><span class="menu-icon">📝</span><span>Notes</span></a></li>
+          <li><a href="tasks.html" id="sidebar-tasks"><span class="menu-icon">📋</span><span>Tasks</span></a></li>
+          <li class="admin-only"><a href="audit.html" id="sidebar-audit" class="active"><span class="menu-icon">🔍</span><span>Audit</span></a></li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="sidebar-footer-btn" id="sidebar-settings-btn"><span class="menu-icon">⚙️</span><span>Settings</span></button>
+        <button class="sidebar-footer-btn" id="sidebar-signout"><span class="menu-icon">🚪</span><span>Sign Out</span></button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="dashboard-header tasks-page-header animate-fade-in">
+        <div>
+          <p class="eyebrow">Audit Trails</p>
+          <h1>Audit Logs</h1>
+        </div>
+      </header>
+
+      <section class="tasks-table-section">
+        <article class="department-panel department-table-panel">
+          <div class="module-header audit-module-header">
+            <div></div>
+            <div class="audit-header-actions">
+              <span id="audit-count" class="column-count">0</span>
+              <div class="audit-search-box">
+                <input type="search" id="audit-search-filter" placeholder="Search audit logs..." aria-label="Search audit logs" />
+              </div>
+              <button type="button" id="audit-open-filters-btn" class="ghost-button audit-open-filters-btn">⚙️ Filters</button>
+            </div>
+          </div>
+
+          <!-- Filter Drawer -->
+          <div class="audit-filter-drawer hidden" id="audit-filter-drawer" aria-hidden="true">
+            <div class="drawer-header">
+              <h3>Filter Audit Logs</h3>
+              <button type="button" id="audit-close-filters-btn" class="drawer-close" aria-label="Close filters">&times;</button>
+            </div>
+            <div class="drawer-content">
+              <div class="drawer-group"><label for="audit-id-filter">Audit ID</label><input type="text" id="audit-id-filter" placeholder="Trail ID" /></div>
+              <div class="drawer-group"><label for="audit-recordid-filter">Record ID</label><input type="text" id="audit-recordid-filter" placeholder="Role / Dept / User / Note / Task ID" /></div>
+              <div class="drawer-group"><label for="audit-table-filter">Table</label>
+                <select id="audit-table-filter">
+                  <option value="">All Tables</option>
+                  <option value="Roles">Roles</option>
+                  <option value="Departments">Departments</option>
+                  <option value="Notes">Notes</option>
+                  <option value="Tasks">Tasks</option>
+                </select>
+              </div>
+              <div class="drawer-group"><label for="audit-user-filter">User</label><select id="audit-user-filter"><option value="">All Users</option></select></div>
+              <div class="drawer-group"><label for="audit-action-filter">Action Type</label>
+                <select id="audit-action-filter">
+                  <option value="">All Actions</option>
+                  <option value="CREATE">CREATE</option>
+                  <option value="UPDATE">UPDATE</option>
+                  <option value="DELETE">DELETE</option>
+                </select>
+              </div>
+              <div class="drawer-group"><label for="audit-start-date-filter">Start Date</label><input type="date" id="audit-start-date-filter" /></div>
+              <div class="drawer-group"><label for="audit-end-date-filter">End Date</label><input type="date" id="audit-end-date-filter" /></div>
+              <div class="drawer-actions">
+                <button id="audit-clear-filters" class="ghost-button">Reset</button>
+                <button id="audit-apply-filters" class="primary-button">Apply Filters</button>
               </div>
             </div>
-            <div
-              class="audit-filter-drawer hidden"
-              id="audit-filter-drawer"
-              aria-hidden="true"
-            >
-              <div class="drawer-header">
-                <h3>FILTER AUDIT LOGS</h3>
-                <button
-                  type="button"
-                  id="audit-close-filters-btn"
-                  class="drawer-close"
-                  aria-label="Close filters"
-                >
-                  ×
-                </button>
-              </div>
-              <div class="drawer-content">
-                <div class="drawer-group">
-                  <label for="audit-id-filter">Audit ID</label>
-                  <input
-                    type="text"
-                    id="audit-id-filter"
-                    placeholder="Trail ID"
-                  />
-                </div>
-                <div class="drawer-group">
-                  <label for="audit-recordid-filter">Record ID</label>
-                  <input
-                    type="text"
-                    id="audit-recordid-filter"
-                    placeholder="Role / Department / User / Note / Task ID"
-                  />
-                </div>
-                <div class="drawer-group">
-                  <label for="audit-table-filter">Table</label>
-                  <select id="audit-table-filter">
-                    <option value="">All Tables</option>
-                    <option value="Roles">Roles</option>
-                    <option value="Departments">Departments</option>
-                    <option value="Notes">Notes</option>
-                    <option value="Tasks">Tasks</option>
-                  </select>
-                </div>
-                <div class="drawer-group">
-                  <label for="audit-user-filter">User</label>
-                  <select id="audit-user-filter">
-                    <option value="">All Users</option>
-                  </select>
-                </div>
-                <div class="drawer-group">
-                  <label for="audit-action-filter">Action Type</label>
-                  <select id="audit-action-filter">
-                    <option value="">All Actions</option>
-                    <option value="CREATE">CREATE</option>
-                    <option value="UPDATE">UPDATE</option>
-                    <option value="DELETE">DELETE</option>
-                  </select>
-                </div>
-                <div class="drawer-group">
-                  <label for="audit-start-date-filter">Start Date</label>
-                  <input type="date" id="audit-start-date-filter" />
-                </div>
-                <div class="drawer-group">
-                  <label for="audit-end-date-filter">End Date</label>
-                  <input type="date" id="audit-end-date-filter" />
-                </div>
-                <div class="drawer-actions">
-                  <button id="audit-clear-filters" class="ghost-button">
-                    Reset
-                  </button>
-                  <button id="audit-apply-filters" class="primary-button">
-                    Apply Filters
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div
-              class="drawer-backdrop hidden"
-              id="audit-filter-backdrop"
-            ></div>
-            <div class="department-table-wrapper">
-              <table
-                class="department-table audit-table"
-                aria-label="Audit Trails"
-              >
-                <thead>
-                  <tr>
-                    <th scope="col">ID</th>
-                    <th scope="col">Action</th>
-                    <th scope="col">Table</th>
-                    <th scope="col">Record ID</th>
-                    <th scope="col">User</th>
-                    <th scope="col">Timestamp</th>
-                    <th scope="col" class="department-table-actions">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody id="audit-table-body"></tbody>
-              </table>
-            </div>
-            <div class="audit-pagination" id="audit-pagination" hidden>
-              <button type="button" id="audit-prev-page" class="ghost-button">
-                Previous
-              </button>
-              <span id="audit-page-info" class="meta-text"></span>
-              <button type="button" id="audit-next-page" class="ghost-button">
-                Next
-              </button>
-            </div>
-          </article>
+          </div>
+          <div class="drawer-backdrop hidden" id="audit-filter-backdrop"></div>
+
+          <div class="department-table-wrapper">
+            <table class="department-table audit-table" aria-label="Audit Trails">
+              <thead>
+                <tr>
+                  <th scope="col">ID</th>
+                  <th scope="col">Action</th>
+                  <th scope="col">Table</th>
+                  <th scope="col">Record ID</th>
+                  <th scope="col">User</th>
+                  <th scope="col">Timestamp</th>
+                  <th scope="col" class="department-table-actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="audit-table-body"></tbody>
+            </table>
+          </div>
+          <div class="audit-pagination" id="audit-pagination" hidden>
+            <button type="button" id="audit-prev-page" class="ghost-button">Previous</button>
+            <span id="audit-page-info" class="meta-text"></span>
+            <button type="button" id="audit-next-page" class="ghost-button">Next</button>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <!-- Audit Detail Modal -->
+  <div id="audit-detail-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="audit-detail-title">
+    <div class="modal-content tasks-modal-content">
+      <div class="modal-header">
+        <h3 id="audit-detail-title">Audit Trail Details</h3>
+        <button id="close-audit-detail-modal" class="close-button" type="button" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="audit-detail-section">
+          <h4>Old Data</h4>
+          <pre id="audit-old-data"></pre>
+        </div>
+        <div class="audit-detail-section">
+          <h4>New Data</h4>
+          <pre id="audit-new-data"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="settings-title">Account Settings</h3>
+        <button id="close-settings-modal" class="close-button" aria-label="Close settings">&times;</button>
+      </div>
+      <div class="modal-body">
+        <section class="settings-section">
+          <h4>Account Information</h4>
+          <div class="account-info">
+            <div class="info-item"><label>Name</label><p id="modal-account-name">Loading...</p></div>
+            <div class="info-item"><label>Email</label><p id="modal-account-email">Loading...</p></div>
+            <div class="info-item"><label>Role</label><p id="modal-account-role">Loading...</p></div>
+            <div class="info-item"><label>Department</label><p id="modal-account-department">Loading...</p></div>
+          </div>
         </section>
-      </main>
-
-      <div
-        id="audit-detail-modal"
-        class="modal hidden"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="audit-detail-title"
-      >
-        <div class="modal-content tasks-modal-content">
-          <div class="modal-header">
-            <h3 id="audit-detail-title">Audit Trail Details</h3>
-            <button
-              id="close-audit-detail-modal"
-              class="modal-close-btn"
-              type="button"
-              aria-label="Close modal"
-            >
-              ×
-            </button>
+        <section class="settings-section">
+          <h4>Password & Security</h4>
+          <div class="security-actions">
+            <button id="reset-password-btn" class="secondary-button">Reset Password</button>
+            <p class="help-text">Click to receive a password reset link via email</p>
           </div>
-          <div class="modal-body">
-            <div class="audit-detail-section">
-              <h4>Old Data</h4>
-              <pre id="audit-old-data"></pre>
-            </div>
-            <div class="audit-detail-section">
-              <h4>New Data</h4>
-              <pre id="audit-new-data"></pre>
-            </div>
+        </section>
+        <section class="settings-section">
+          <h4>Account Actions</h4>
+          <div class="account-actions">
+            <button id="signout-modal-btn" class="ghost-button">Sign Out</button>
+            <p class="help-text">Sign out of your account</p>
           </div>
-        </div>
+        </section>
       </div>
     </div>
+  </div>
 
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="modal hidden">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Account Settings</h3>
-          <button id="close-settings-modal" class="close-button">
-            &times;
-          </button>
-        </div>
-        <div class="modal-body">
-          <section class="settings-section">
-            <h4>Account Information</h4>
-            <div class="account-info">
-              <div class="info-item">
-                <label>Name</label>
-                <p id="modal-account-name">Loading...</p>
-              </div>
-              <div class="info-item">
-                <label>Email</label>
-                <p id="modal-account-email">Loading...</p>
-              </div>
-              <div class="info-item">
-                <label>Role</label>
-                <p id="modal-account-role">Loading...</p>
-              </div>
-              <div class="info-item">
-                <label>Department</label>
-                <p id="modal-account-department">Loading...</p>
-              </div>
-            </div>
-          </section>
-
-          <section class="settings-section">
-            <h4>Password & Security</h4>
-            <div class="security-actions">
-              <button id="reset-password-btn" class="secondary-button">
-                Reset Password
-              </button>
-              <p class="help-text">
-                Click to receive a password reset link via email
-              </p>
-            </div>
-          </section>
-
-          <section class="settings-section">
-            <h4>Account Actions</h4>
-            <div class="account-actions">
-              <button id="signout-modal-btn" class="ghost-button">
-                Sign Out
-              </button>
-              <p class="help-text">Sign out of your account</p>
-            </div>
-          </section>
-        </div>
-      </div>
-    </div>
-
-    <!-- Reset Password Modal -->
-    <div id="reset-modal" class="modal hidden">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4>Reset Password</h4>
-          <button id="close-reset-modal" class="close-button">&times;</button>
-        </div>
-        <form id="reset-password-form">
-          <label>
-            Email
-            <input type="text" name="identifier" required />
-          </label>
-          <p class="help-text">
-            Enter your email address to receive a reset link.
-          </p>
-          <div class="modal-actions">
-            <button type="button" id="cancel-reset" class="ghost-button">
-              Cancel
-            </button>
-            <button type="submit" class="primary-button">
-              Send reset link
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <script src="../js/api-base.js"></script>
-    <script src="../js/rbac.js"></script>
-    <script src="../js/main.js"></script>
-    <script src="../js/notifications.js"></script>
-    <script src="../js/audit.js"></script>
-  </body>
+  <script src="../js/api-base.js"></script>
+  <script src="../js/rbac.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/audit.js"></script>
+</body>
 </html>

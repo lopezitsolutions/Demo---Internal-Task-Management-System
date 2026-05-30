@@ -1,374 +1,443 @@
 /**
- * ITWMS Main Shared Logic
- * Handles sidebar, authentication, and role-based visibility
+ * ITWMS Main Shared Logic v2.0
+ * Enhanced sidebar, authentication, role-based visibility, and accessibility
  */
 
-function initSidebar() {
-  const sidebarLinks = document.querySelectorAll(".sidebar-menu a");
-  const currentPath = window.location.pathname;
+(function() {
+  "use strict";
 
-  sidebarLinks.forEach((link) => {
-    // Remove active class
-    link.classList.remove("active");
+  // ===== Mobile Sidebar Toggle =====
+  function initSidebar() {
+    const sidebar = document.querySelector(".sidebar");
+    const menuToggle = document.querySelector(".menu-toggle");
+    const sidebarClose = document.querySelector(".sidebar-close");
+    const overlay = document.querySelector(".sidebar-overlay");
 
-    // Add active class to current page
-    const href = link.getAttribute("href");
-    if (href && href !== "#" && currentPath.includes(href)) {
-      link.classList.add("active");
-    }
-  });
+    if (!sidebar || !menuToggle) return;
 
-  // Special case for dashboard
-  if (currentPath.includes("dashboard.html") || currentPath.endsWith("/")) {
-    const dashLink =
-      document.querySelector('a[href="dashboard.html"]') ||
-      document.getElementById("sidebar-dashboard");
-    if (dashLink) dashLink.classList.add("active");
-  }
-}
+    function openSidebar() {
+      sidebar.classList.add("open");
+      if (overlay) overlay.classList.add("visible");
+      menuToggle.setAttribute("aria-expanded", "true");
+      document.body.style.overflow = "hidden";
 
-function setupMobileToggle() {
-  const sidebar = document.querySelector(".sidebar");
-  if (!sidebar) return;
-
-  // Create overlay if it doesn't exist
-  let overlay = document.querySelector(".sidebar-overlay");
-  if (!overlay) {
-    overlay = document.createElement("div");
-    overlay.className = "sidebar-overlay";
-    document.body.appendChild(overlay);
-  }
-
-  // Handle toggle button clicks
-  document.addEventListener("click", (e) => {
-    const toggle = e.target.closest(".menu-toggle");
-    const closeBtn = e.target.closest(".sidebar-close");
-
-    if (toggle) {
-      sidebar.classList.toggle("open");
-      overlay.classList.toggle("visible");
-    } else if (closeBtn) {
-      sidebar.classList.remove("open");
-      overlay.classList.remove("visible");
-    } else if (
-      overlay.classList.contains("visible") &&
-      !e.target.closest(".sidebar")
-    ) {
-      sidebar.classList.remove("open");
-      overlay.classList.remove("visible");
-    }
-  });
-}
-
-function updateSidebarUser(profile) {
-  const sidebarUsername = document.getElementById("sidebar-username");
-  if (!sidebarUsername) return;
-
-  let user = profile;
-  if (!user) {
-    user = JSON.parse(localStorage.getItem("user") || "{}");
-  } else {
-    // If profile is provided, save it to localStorage for other components
-    localStorage.setItem("user", JSON.stringify(profile));
-  }
-
-  sidebarUsername.textContent =
-    user.nickname || user.name || user.username || "User";
-
-  const userRoleLabel =
-    typeof user.role === "object" && user.role?.name
-      ? user.role.name
-      : user.role;
-
-  // Also apply role visibility if profile is available
-  if (user.roleName || userRoleLabel) {
-    if (typeof window.applyRoleBasedVisibility === "function") {
-      window.applyRoleBasedVisibility();
-    } else {
-      applyRoleVisibility(user.roleName || userRoleLabel);
-    }
-  }
-}
-
-function applyRoleVisibility(role) {
-  if (typeof window.applyRoleBasedVisibility === "function") {
-    window.applyRoleBasedVisibility();
-    return;
-  }
-
-  if (!role) {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    role = user.roleName || user.role?.name || "Employee";
-  }
-
-  console.log(`[applyRoleVisibility] Applying visibility for role: ${role}`);
-
-  document.querySelectorAll(".admin-only").forEach((node) => {
-    node.classList.toggle("hidden", role !== "Admin");
-  });
-  document.querySelectorAll(".manager-only").forEach((node) => {
-    node.classList.toggle("hidden", role !== "Admin" && role !== "Manager");
-  });
-  document.querySelectorAll(".employee-only").forEach((node) => {
-    node.classList.toggle("hidden", role !== "Employee");
-  });
-}
-
-// Settings modal handling
-function openSettingsModal() {
-  const settingsModal = document.getElementById("settings-modal");
-  if (!settingsModal) return;
-
-  // Populate modal with current profile data from localStorage
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const modalAccountName = document.getElementById("modal-account-name");
-  const modalAccountEmail = document.getElementById("modal-account-email");
-  const modalAccountRole = document.getElementById("modal-account-role");
-  const modalAccountDepartment = document.getElementById(
-    "modal-account-department",
-  );
-
-  if (modalAccountName)
-    modalAccountName.textContent = user.nickname || user.name || "Unknown";
-  if (modalAccountEmail)
-    modalAccountEmail.textContent = user.email || "No email";
-  if (modalAccountRole)
-    modalAccountRole.textContent =
-      user.roleName || user.role?.name || "Unknown";
-  if (modalAccountDepartment)
-    modalAccountDepartment.textContent =
-      user.depName || user.department?.name || "Unassigned";
-
-  settingsModal.classList.remove("hidden");
-}
-
-function closeSettingsModal() {
-  const settingsModal = document.getElementById("settings-modal");
-  if (settingsModal) {
-    settingsModal.classList.add("hidden");
-  }
-}
-
-function createResetModalIfMissing() {
-  let resetModal = document.getElementById("reset-modal");
-  if (resetModal) return resetModal;
-
-  const wrapper = document.createElement("div");
-  wrapper.innerHTML = `
-    <div id="reset-modal" class="modal hidden">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4>Reset Password</h4>
-          <button id="close-reset-modal" class="close-button">&times;</button>
-        </div>
-        <form id="reset-password-form">
-          <label>
-            Email
-            <input type="text" name="identifier" required />
-          </label>
-          <p class="help-text">
-            Enter your email address to receive a reset link.
-          </p>
-          <div class="modal-actions">
-            <button type="button" id="cancel-reset" class="ghost-button">
-              Cancel
-            </button>
-            <button type="submit" class="primary-button">
-              Send reset link
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  `;
-
-  resetModal = wrapper.firstElementChild;
-  if (resetModal) {
-    document.body.appendChild(resetModal);
-  }
-  return resetModal;
-}
-
-function openResetModal() {
-  let resetModal = document.getElementById("reset-modal");
-  if (!resetModal) {
-    resetModal = createResetModalIfMissing();
-  }
-  if (!resetModal) return;
-  resetModal.classList.remove("hidden");
-}
-
-function buildPasswordResetPayload(identifier) {
-  const trimmed = String(identifier || "").trim();
-  return trimmed.includes("@") ? { email: trimmed } : { username: trimmed };
-}
-
-async function handleForgotPasswordSubmit(event) {
-  event.preventDefault();
-  const form = event.target;
-  const identifier = String(form.identifier?.value || "").trim();
-
-  if (!identifier) {
-    alert("Please enter your email address or username.");
-    return;
-  }
-
-  try {
-    const result = await fetchJson(apiPath("/api/auth/forgot-password"), {
-      method: "POST",
-      body: JSON.stringify(buildPasswordResetPayload(identifier)),
-    });
-    const message =
-      result?.message || "If the email exists, a reset link was sent";
-    alert(message);
-    form.reset();
-    closeResetModal();
-  } catch (error) {
-    alert(
-      "Failed to send password reset link: " +
-        (error?.message || "Please try again later."),
-    );
-  }
-}
-
-function closeResetModal() {
-  const resetModal = document.getElementById("reset-modal");
-  if (resetModal) {
-    resetModal.classList.add("hidden");
-  }
-}
-
-function setupSettingsLink() {
-  document.addEventListener("click", (e) => {
-    const settingsLink = e.target.closest("#sidebar-settings");
-    if (settingsLink) {
-      e.preventDefault();
-      const currentPath = window.location.pathname;
-      if (!currentPath.includes("settings.html")) {
-        openSettingsModal();
+      // Focus trap for accessibility
+      const focusableElements = sidebar.querySelectorAll(
+        'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements.length) {
+        focusableElements[0].focus();
       }
-      return;
     }
 
-    if (e.target.matches("#close-settings-modal")) {
-      closeSettingsModal();
+    function closeSidebar() {
+      sidebar.classList.remove("open");
+      if (overlay) overlay.classList.remove("visible");
+      menuToggle.setAttribute("aria-expanded", "false");
+      document.body.style.overflow = "";
+      menuToggle.focus();
     }
 
+    menuToggle.addEventListener("click", () => {
+      if (sidebar.classList.contains("open")) {
+        closeSidebar();
+      } else {
+        openSidebar();
+      }
+    });
+
+    if (sidebarClose) {
+      sidebarClose.addEventListener("click", closeSidebar);
+    }
+
+    if (overlay) {
+      overlay.addEventListener("click", closeSidebar);
+    }
+
+    // Close on escape key
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && sidebar.classList.contains("open")) {
+        closeSidebar();
+      }
+    });
+
+    // Close when clicking a link (mobile)
+    sidebar.querySelectorAll("a[href]").forEach((link) => {
+      link.addEventListener("click", () => {
+        if (window.innerWidth <= 768) {
+          closeSidebar();
+        }
+      });
+    });
+  }
+
+  // ===== Active Sidebar State =====
+  function setSidebarActiveState() {
+    const currentPath = window.location.pathname;
+    const currentPage = currentPath.split("/").pop() || "dashboard.html";
+
+    document.querySelectorAll(".sidebar-menu a").forEach((link) => {
+      link.classList.remove("active");
+      const href = link.getAttribute("href");
+      if (href && currentPage.includes(href)) {
+        link.classList.add("active");
+      }
+    });
+  }
+
+  // ===== User Profile in Sidebar =====
+  function updateSidebarUser(profile) {
+    const usernameEl = document.getElementById("sidebar-username");
+    const userRoleEl = document.getElementById("sidebar-user-role");
+    const userAvatarEl = document.getElementById("sidebar-user-avatar");
+
+    let user = profile;
+    if (!user) {
+      try {
+        user = JSON.parse(localStorage.getItem("user") || "{}");
+      } catch {
+        user = {};
+      }
+    }
+
+    const name = user.nickname || user.name || user.username || "User";
+    const role = user.roleName || (user.role && user.role.name) || "Employee";
+    const initials = name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+
+    if (usernameEl) usernameEl.textContent = name;
+    if (userRoleEl) userRoleEl.textContent = role;
+    if (userAvatarEl) userAvatarEl.textContent = initials;
+
+    // Save to localStorage
+    if (profile) {
+      localStorage.setItem("user", JSON.stringify(profile));
+    }
+
+    // Apply role visibility
+    const roleName = user.roleName || (user.role && user.role.name);
+    if (roleName) {
+      applyRoleVisibility(roleName);
+    }
+  }
+
+  // ===== Role-Based Visibility =====
+  function applyRoleVisibility(role) {
+    if (!role) {
+      try {
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        role = user.roleName || (user.role && user.role.name) || "Employee";
+      } catch {
+        role = "Employee";
+      }
+    }
+
+    const isAdmin = role === "Admin";
+    const isManager = role === "Manager";
+    const isEmployee = role === "Employee";
+
+    // Handle .admin-only elements
+    document.querySelectorAll(".admin-only").forEach((el) => {
+      el.classList.toggle("hidden", !isAdmin);
+    });
+
+    // Handle .manager-only elements
+    document.querySelectorAll(".manager-only").forEach((el) => {
+      el.classList.toggle("hidden", !isAdmin && !isManager);
+    });
+
+    // Handle .employee-only elements
+    document.querySelectorAll(".employee-only").forEach((el) => {
+      el.classList.toggle("hidden", !isEmployee);
+    });
+
+    // Handle data-role attributes
+    document.querySelectorAll("[data-role]").forEach((el) => {
+      const allowedRoles = el.dataset.role.split(",").map((r) => r.trim());
+      el.classList.toggle("hidden", !allowedRoles.includes(role));
+    });
+  }
+
+  // ===== Settings Modal =====
+  function initSettingsModal() {
     const settingsModal = document.getElementById("settings-modal");
-    if (settingsModal && e.target === settingsModal) {
-      closeSettingsModal();
-    }
+    if (!settingsModal) return;
 
+    const closeBtn = document.getElementById("close-settings-modal");
+    const signoutBtn = document.getElementById("signout-modal-btn");
     const resetPasswordBtn = document.getElementById("reset-password-btn");
-    if (e.target.matches("#reset-password-btn") && resetPasswordBtn) {
-      e.preventDefault();
-      openResetModal();
-      return;
+
+    function openSettings() {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+      document.getElementById("modal-account-name").textContent = 
+        user.nickname || user.name || "Unknown";
+      document.getElementById("modal-account-email").textContent = 
+        user.email || "No email";
+      document.getElementById("modal-account-role").textContent = 
+        user.roleName || (user.role && user.role.name) || "Unknown";
+      document.getElementById("modal-account-department").textContent = 
+        user.depName || (user.department && user.department.name) || "Unassigned";
+
+      settingsModal.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
     }
 
-    if (
-      e.target.matches("#close-reset-modal") ||
-      e.target.matches("#cancel-reset")
-    ) {
-      closeResetModal();
+    function closeSettings() {
+      settingsModal.classList.add("hidden");
+      document.body.style.overflow = "";
     }
 
+    if (closeBtn) {
+      closeBtn.addEventListener("click", closeSettings);
+    }
+
+    settingsModal.addEventListener("click", (e) => {
+      if (e.target === settingsModal) closeSettings();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !settingsModal.classList.contains("hidden")) {
+        closeSettings();
+      }
+    });
+
+    if (signoutBtn) {
+      signoutBtn.addEventListener("click", () => {
+        itwmsLogout();
+      });
+    }
+
+    if (resetPasswordBtn) {
+      resetPasswordBtn.addEventListener("click", () => {
+        closeSettings();
+        openResetModal();
+      });
+    }
+
+    // Settings button in sidebar
+    const sidebarSettingsBtn = document.getElementById("sidebar-settings-btn");
+    if (sidebarSettingsBtn) {
+      sidebarSettingsBtn.addEventListener("click", openSettings);
+    }
+  }
+
+  // ===== Reset Password Modal =====
+  function initResetModal() {
     const resetModal = document.getElementById("reset-modal");
-    if (resetModal && e.target === resetModal) {
-      closeResetModal();
+    if (!resetModal) return;
+
+    const closeBtn = document.getElementById("close-reset-modal");
+    const cancelBtn = document.getElementById("cancel-reset");
+    const form = document.getElementById("reset-password-form");
+
+    function closeReset() {
+      resetModal.classList.add("hidden");
+      document.body.style.overflow = "";
+      if (form) form.reset();
     }
-  });
 
-  if (!document.getElementById("reset-password-form")) {
-    createResetModalIfMissing();
+    if (closeBtn) closeBtn.addEventListener("click", closeReset);
+    if (cancelBtn) cancelBtn.addEventListener("click", closeReset);
+
+    resetModal.addEventListener("click", (e) => {
+      if (e.target === resetModal) closeReset();
+    });
+
+    if (form) {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const identifier = form.querySelector('[name="identifier"]')?.value?.trim();
+        if (!identifier) return;
+
+        try {
+          const payload = identifier.includes("@") 
+            ? { email: identifier } 
+            : { username: identifier };
+
+          await fetchJson(apiPath("/api/auth/forgot-password"), {
+            method: "POST",
+            body: JSON.stringify(payload),
+          });
+
+          showNotification("success", "Reset link sent to your email");
+          closeReset();
+        } catch (error) {
+          showNotification("error", error.message || "Failed to send reset link");
+        }
+      });
+    }
   }
-  const resetPasswordForm = document.getElementById("reset-password-form");
-  if (resetPasswordForm) {
-    resetPasswordForm.addEventListener("submit", handleForgotPasswordSubmit);
+
+  function openResetModal() {
+    const resetModal = document.getElementById("reset-modal");
+    if (resetModal) {
+      resetModal.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    }
   }
-}
 
-// Add to DOMContentLoaded
-document.addEventListener("DOMContentLoaded", () => {
-  initSidebar();
-  updateSidebarUser();
-  applyRoleVisibility();
-  setupMobileToggle();
-  setupSettingsLink();
+  // ===== Sign Out =====
+  function itwmsLogout() {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    localStorage.removeItem("refreshToken");
+    window.location.replace("/index.html");
+  }
 
-  // Initialize RBAC system
-  if (typeof initRBAC === "function") {
-    initRBAC();
+  // ===== Fetch Utilities =====
+  function getAuthHeaders(additionalHeaders = {}) {
+    const headers = {
+      "Content-Type": "application/json",
+      ...additionalHeaders,
+    };
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    return headers;
+  }
+
+  async function fetchJson(url, options = {}) {
+    const response = await fetch(url, {
+      ...options,
+      headers: getAuthHeaders(options.headers),
+    });
+
+    const text = await response.text();
+    let json = null;
+    if (text) {
+      try {
+        json = JSON.parse(text);
+      } catch {
+        json = null;
+      }
+    }
+
+    if (!response.ok) {
+      const msg = json && typeof json === "object" ? json.message || json.error : null;
+      throw new Error(
+        (typeof msg === "string" && msg) || `Request failed with status ${response.status}`
+      );
+    }
+
+    if (json && typeof json === "object" && json.success === false) {
+      throw new Error(json.message || "Request failed.");
+    }
+
+    if (!json || typeof json !== "object") {
+      return null;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(json, "data")) {
+      return json.data;
+    }
+
+    return json;
+  }
+
+  function apiPath(path) {
+    if (typeof window !== "undefined" && typeof window.itwmsApiPath === "function") {
+      return window.itwmsApiPath(path);
+    }
+    const normalized = path.startsWith("/") ? path : `/${path}`;
+    if (typeof window !== "undefined" && window.__API_BASE__) {
+      const base = String(window.__API_BASE__).replace(/\/$/, "");
+      return `${base}${normalized}`;
+    }
+    return normalized;
+  }
+
+  // ===== Notification System =====
+  function showNotification(type, message) {
+    let container = document.getElementById("notification-container");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "notification-container";
+      container.className = "notification-container";
+      document.body.appendChild(container);
+    }
+
+    const icons = {
+      success: "✓",
+      error: "⚠",
+      warning: "⚡",
+      info: "ℹ",
+    };
+
+    const notification = document.createElement("div");
+    notification.className = `notification notification--${type}`;
+    notification.innerHTML = `
+      <span class="notification__icon notification__icon--${type}">${icons[type] || "•"}</span>
+      <span class="notification__message">${message}</span>
+      <button class="notification__close" aria-label="Close notification">&times;</button>
+    `;
+
+    container.appendChild(notification);
+
+    requestAnimationFrame(() => {
+      notification.classList.add("notification--visible");
+    });
+
+    const autoRemove = setTimeout(() => {
+      removeNotification(notification);
+    }, 5000);
+
+    notification.querySelector(".notification__close").addEventListener("click", () => {
+      clearTimeout(autoRemove);
+      removeNotification(notification);
+    });
+  }
+
+  function removeNotification(notification) {
+    notification.classList.remove("notification--visible");
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 300);
+  }
+
+  // ===== Initialize =====
+  function init() {
+    initSidebar();
+    setSidebarActiveState();
+    updateSidebarUser();
+    applyRoleVisibility();
+    initSettingsModal();
+    initResetModal();
+
+    // Sidebar signout
+    const sidebarSignout = document.getElementById("sidebar-signout");
+    if (sidebarSignout) {
+      sidebarSignout.addEventListener("click", itwmsLogout);
+    }
+
+    // Initialize RBAC
+    if (typeof initRBAC === "function") {
+      initRBAC();
+    }
+  }
+
+  // Run on DOM ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
   } else {
-    console.warn(
-      "[main.js] RBAC system not loaded. Make sure rbac.js is included before main.js",
-    );
-  }
-});
-
-// Make it globally accessible
-window.applyRoleVisibility = applyRoleVisibility;
-window.initRBAC =
-  typeof initRBAC !== "undefined"
-    ? initRBAC
-    : () => console.warn("RBAC not loaded");
-
-// Global logout function
-window.itwmsLogout = function () {
-  localStorage.removeItem("authToken");
-  localStorage.removeItem("user");
-  window.location.replace("/index.html");
-};
-
-// Fetch utilities
-function getAuthHeaders(additionalHeaders = {}) {
-  const headers = {
-    "Content-Type": "application/json",
-    ...additionalHeaders,
-  };
-
-  const token = localStorage.getItem("authToken");
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+    init();
   }
 
-  return headers;
-}
-
-async function fetchJson(url, options = {}) {
-  console.log("[fetchJson] Fetching:", url, "Options:", options);
-  const token = localStorage.getItem("authToken");
-  console.log(
-    "[fetchJson] Token from localStorage:",
-    token ? "present" : "MISSING",
-  );
-
-  const response = await fetch(url, {
-    ...options,
-    headers: getAuthHeaders(options.headers),
-  });
-
-  console.log("[fetchJson] Response status:", response.status);
-
-  const responseText = await response.text();
-  let payload = null;
-  try {
-    payload = JSON.parse(responseText);
-  } catch (e) {
-    console.warn("[fetchJson] Failed to parse JSON response:", responseText);
-  }
-
-  if (!response.ok) {
-    console.error("[fetchJson] Error response:", payload || responseText);
-    const message =
-      payload?.message ||
-      (responseText.includes("Database")
-        ? "Server database connection error."
-        : "Request failed");
-    throw new Error(message);
-  }
-
-  const result = payload?.data ?? payload ?? {};
-  console.log("[fetchJson] Returning:", result);
-  return result;
-}
+  // Expose globals
+  window.applyRoleVisibility = applyRoleVisibility;
+  window.updateSidebarUser = updateSidebarUser;
+  window.setSidebarActiveState = setSidebarActiveState;
+  window.itwmsLogout = itwmsLogout;
+  window.fetchJson = fetchJson;
+  window.apiPath = apiPath;
+  window.getAuthHeaders = getAuthHeaders;
+  window.showNotification = showNotification;
+  window.openResetModal = openResetModal;
+})();

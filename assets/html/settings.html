@@ -1,176 +1,138 @@
 <!doctype html>
 <html lang="en">
-  <head>
-  <!-- CRITICAL: Demo mode scripts MUST load first to intercept all API calls -->
+<head>
   <script src="../js/demo-data.js"></script>
   <script src="../js/demo-store.js"></script>
   <script src="../js/demo-mode.js"></script>
 
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:* http://localhost:* https:"
-    />
-    <title>Settings | ITWMS</title>
-    <link rel="stylesheet" href="../css/main.css" />
-    <link rel="stylesheet" href="../css/sidebar.css" />
-    <link rel="stylesheet" href="../css/settings.css" />
-    <script>
-      // Debug mode - check URL for ?debug=1 parameter
-      if (new URLSearchParams(window.location.search).get("debug") === "1") {
-        console.clear();
-        console.log(
-          "%c========== DEBUG MODE ENABLED ==========%c",
-          "color: red; font-weight: bold; font-size: 14px;",
-          "",
-        );
-        console.log(
-          "%cAuto-redirect is DISABLED. Check console for error details.%c",
-          "color: orange; font-size: 12px;",
-          "",
-        );
-        console.log(
-          "%c=========================================%c",
-          "color: red; font-weight: bold; font-size: 14px;",
-          "",
-        );
-      }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <meta name="theme-color" content="#08111f" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="ITWMS - Account Settings" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:* http://localhost:* https:; img-src 'self' data:; font-src 'self' data:;" />
 
-  </head>
-  <body>
-    <div class="dashboard-shell">
-      <aside class="sidebar">
-        <nav class="sidebar-nav">
-          <div class="sidebar-user">
-            <p id="sidebar-username">Loading...</p>
-          </div>
-          <ul class="sidebar-menu">
-            <li>
-              <a href="dashboard.html" id="sidebar-dashboard">Dashboard</a>
-            </li>
-            <li>
-              <a
-                href="department.html"
-                id="sidebar-departments"
-                class="admin-only manager-only"
-                >Departments</a
-              >
-            </li>
-            <li>
-              <a href="users.html" id="sidebar-users" class="admin-only"
-                >Users</a
-              >
-            </li>
-            <li><a href="notes.html" id="sidebar-notes">Notes</a></li>
-            <li><a href="tasks.html" id="sidebar-tasks">Tasks</a></li>
-            <li>
-              <a href="audit.html" id="sidebar-audit" class="admin-only"
-                >Audit</a
-              >
-            </li>
-            <li><a href="settings.html" id="sidebar-settings">Settings</a></li>
-          </ul>
-        </nav>
-      </aside>
-      <main class="main-content">
-        <header class="dashboard-header">
-          <div style="display: flex; align-items: center">
-            <button class="menu-toggle" aria-label="Toggle Menu">
-              &#9776;
-            </button>
-            <div>
-              <p class="eyebrow">Account Settings</p>
-              <h1>Manage Your Account</h1>
-              <p class="meta-text">
-                Update your account information and preferences
-              </p>
-            </div>
-          </div>
-        </header>
+  <title>Settings | ITWMS</title>
 
-        <section class="settings-grid">
-          <article class="settings-card">
-            <h2>Account Information</h2>
-            <div class="account-info">
-              <div class="info-item">
-                <label>Name</label>
-                <p id="account-name">Loading...</p>
-              </div>
-              <div class="info-item">
-                <label>Email</label>
-                <p id="account-email">Loading...</p>
-              </div>
-              <div class="info-item">
-                <label>Role</label>
-                <p id="account-role">Loading...</p>
-              </div>
-              <div class="info-item">
-                <label>Department</label>
-                <p id="account-department">Loading...</p>
-              </div>
-            </div>
-          </article>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-          <article class="settings-card">
-            <h2>Password & Security</h2>
-            <div class="security-actions">
-              <button id="reset-password-btn" class="secondary-button">
-                Reset Password
-              </button>
-              <p class="help-text">
-                Click to receive a password reset link via email
-              </p>
-            </div>
-          </article>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/sidebar.css" />
+  <link rel="stylesheet" href="../css/settings.css" />
 
-          <article class="settings-card">
-            <h2>Account Actions</h2>
-            <div class="account-actions">
-              <button id="signout-bottom-btn" class="ghost-button">
-                Sign Out of All Devices
-              </button>
-              <p class="help-text">
-                This will sign you out from all devices where you're logged in
-              </p>
-            </div>
-          </article>
-        </section>
-      </main>
-    </div>
+  <script>
+    if (new URLSearchParams(window.location.search).get("debug") === "1") {
+      console.clear();
+      console.log("%c DEBUG MODE ENABLED ", "background: #ef4444; color: white; font-weight: bold; padding: 4px 8px; border-radius: 4px;");
+    }
+  </script>
+</head>
+<body>
+  <button class="menu-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar-nav">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
 
-    <!-- Reset Password Modal -->
-    <div id="reset-modal" class="modal hidden">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Reset Password</h3>
-          <button id="close-reset-modal" class="close-button">&times;</button>
-        </div>
-        <form id="reset-password-form">
-          <label>
-            Email
-            <input type="text" name="identifier" required />
-          </label>
-          <p class="help-text">
-            Enter your email address to receive a reset link.
-          </p>
-          <div class="modal-actions">
-            <button type="button" id="cancel-reset" class="ghost-button">
-              Cancel
-            </button>
-            <button type="submit" class="primary-button">
-              Send reset link
-            </button>
-          </div>
-        </form>
+  <div class="sidebar-overlay" aria-hidden="true"></div>
+
+  <div class="dashboard-shell">
+    <aside class="sidebar" id="sidebar-nav" role="navigation" aria-label="Main navigation">
+      <button class="sidebar-close" aria-label="Close navigation menu">&times;</button>
+
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">IT</div>
+        <span class="sidebar-brand-text">ITWMS</span>
       </div>
+
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="sidebar-user-avatar">U</div>
+        <div class="sidebar-user-info">
+          <p class="sidebar-user-name" id="sidebar-username">Loading...</p>
+          <p class="sidebar-user-role" id="sidebar-user-role">Loading...</p>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul class="sidebar-menu">
+          <li><a href="dashboard.html" id="sidebar-dashboard"><span class="menu-icon">📊</span><span>Dashboard</span></a></li>
+          <li class="admin-only manager-only"><a href="department.html" id="sidebar-departments"><span class="menu-icon">🏢</span><span>Departments</span></a></li>
+          <li class="admin-only"><a href="users.html" id="sidebar-users"><span class="menu-icon">👥</span><span>Users</span></a></li>
+          <li><a href="notes.html" id="sidebar-notes"><span class="menu-icon">📝</span><span>Notes</span></a></li>
+          <li><a href="tasks.html" id="sidebar-tasks"><span class="menu-icon">📋</span><span>Tasks</span></a></li>
+          <li class="admin-only"><a href="audit.html" id="sidebar-audit"><span class="menu-icon">🔍</span><span>Audit</span></a></li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="sidebar-footer-btn" id="sidebar-settings-btn"><span class="menu-icon">⚙️</span><span>Settings</span></button>
+        <button class="sidebar-footer-btn" id="sidebar-signout"><span class="menu-icon">🚪</span><span>Sign Out</span></button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="dashboard-header animate-fade-in">
+        <div>
+          <p class="eyebrow">Account Settings</p>
+          <h1>Manage Your Account</h1>
+          <p class="meta-text">Update your account information and preferences</p>
+        </div>
+      </header>
+
+      <section class="settings-grid">
+        <article class="settings-card">
+          <h2>Account Information</h2>
+          <div class="account-info">
+            <div class="info-item"><label>Name</label><p id="account-name">Loading...</p></div>
+            <div class="info-item"><label>Email</label><p id="account-email">Loading...</p></div>
+            <div class="info-item"><label>Role</label><p id="account-role">Loading...</p></div>
+            <div class="info-item"><label>Department</label><p id="account-department">Loading...</p></div>
+          </div>
+        </article>
+
+        <article class="settings-card">
+          <h2>Password & Security</h2>
+          <div class="security-actions">
+            <button id="reset-password-btn" class="secondary-button">Reset Password</button>
+            <p class="help-text">Click to receive a password reset link via email</p>
+          </div>
+        </article>
+
+        <article class="settings-card">
+          <h2>Account Actions</h2>
+          <div class="account-actions">
+            <button id="signout-bottom-btn" class="ghost-button">Sign Out of All Devices</button>
+            <p class="help-text">This will sign you out from all devices where you're logged in</p>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <!-- Reset Password Modal -->
+  <div id="reset-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="reset-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="reset-title">Reset Password</h3>
+        <button id="close-reset-modal" class="close-button" aria-label="Close reset password">&times;</button>
+      </div>
+      <form id="reset-password-form">
+        <label><span>Email</span><input type="email" name="identifier" placeholder="your@email.com" required autocomplete="email" /></label>
+        <p class="help-text">Enter your email address to receive a reset link.</p>
+        <div class="modal-footer">
+          <button type="button" id="cancel-reset" class="ghost-button">Cancel</button>
+          <button type="submit" class="primary-button">Send reset link</button>
+        </div>
+      </form>
     </div>
+  </div>
 
-
-    <script src="../js/api-base.js"></script>
-    <script src="../js/rbac.js"></script>
-    <script src="../js/main.js"></script>
-    <script src="../js/settings.js"></script>
-  </body>
+  <script src="../js/api-base.js"></script>
+  <script src="../js/rbac.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/settings.js"></script>
+</body>
 </html>

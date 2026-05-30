@@ -1,363 +1,268 @@
 <!doctype html>
 <html lang="en">
-  <head>
-  <!-- CRITICAL: Demo mode scripts MUST load first to intercept all API calls -->
+<head>
   <script src="../js/demo-data.js"></script>
   <script src="../js/demo-store.js"></script>
   <script src="../js/demo-mode.js"></script>
 
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:* http://localhost:* https:"
-    />
-    <title>Tasks | ITWMS</title>
-    <link rel="stylesheet" href="../css/main.css" />
-    <link rel="stylesheet" href="../css/sidebar.css" />
-    <link rel="stylesheet" href="../css/dashboard.css" />
-    <link rel="stylesheet" href="../css/department.css" />
-    <link rel="stylesheet" href="../css/tasks.css" />
-    <script>
-      if (new URLSearchParams(window.location.search).get("debug") === "1") {
-        console.clear();
-        console.log(
-          "%c========== DEBUG MODE ENABLED ==========%c",
-          "color: red; font-weight: bold; font-size: 14px;",
-          "",
-        );
-        console.log(
-          "%cAuto-redirect is DISABLED. Check console for error details.%c",
-          "color: orange; font-size: 12px;",
-          "",
-        );
-        console.log(
-          "%c=========================================%c",
-          "color: red; font-weight: bold; font-size: 14px;",
-          "",
-        );
-      }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <meta name="theme-color" content="#08111f" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="ITWMS - Task Management" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:* http://localhost:* https:; img-src 'self' data:; font-src 'self' data:;" />
 
-  </head>
-  <body>
-    <div class="dashboard-shell">
-      <aside class="sidebar">
-        <nav class="sidebar-nav">
-          <div class="sidebar-user">
-            <p id="sidebar-username">Loading...</p>
-          </div>
-          <ul class="sidebar-menu">
-            <li>
-              <a href="dashboard.html" id="sidebar-dashboard">Dashboard</a>
-            </li>
-            <li>
-              <a
-                href="department.html"
-                id="sidebar-departments"
-                class="admin-only manager-only"
-                >Departments</a
-              >
-            </li>
-            <li>
-              <a href="users.html" id="sidebar-users" class="admin-only"
-                >Users</a
-              >
-            </li>
-            <li><a href="notes.html" id="sidebar-notes">Notes</a></li>
-            <li><a href="tasks.html" id="sidebar-tasks">Tasks</a></li>
-            <li><a href="audit.html" id="sidebar-audit">Audit</a></li>
-            <li><a href="#" id="sidebar-settings">Settings</a></li>
-          </ul>
-        </nav>
-      </aside>
+  <title>Tasks | ITWMS</title>
 
-      <main class="main-content tasks-main">
-        <header class="dashboard-header tasks-page-header">
-          <div>
-            <p class="eyebrow">Work items</p>
-            <h1>Tasks</h1>
-          </div>
-          <div class="header-actions">
-            <button id="new-task-btn" class="secondary-button" type="button">
-              Create task
-            </button>
-          </div>
-        </header>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-        <section class="tasks-table-section">
-          <article class="department-panel department-table-panel">
-            <div class="module-header tasks-module-header">
-              <div>
-                <p class="module-label">Task list</p>
-                <h2>All tasks</h2>
-              </div>
-              <div class="tasks-header-actions">
-                <span id="tasks-count" class="column-count">0</span>
-                <div class="filter-group">
-                  <div class="select-wrapper">
-                    <select id="status-filter" class="modern-filter-select">
-                      <option value="All">All Tasks</option>
-                      <option value="To_Do">To Do</option>
-                      <option value="Pending_Approval">Pending Approval</option>
-                      <option value="In_Progress">In Progress</option>
-                      <option value="Rejected">Rejected</option>
-                      <option value="Completed">Completed</option>
-                      <option value="Cancelled">Cancelled</option>
-                    </select>
-                    <span class="select-icon">▼</span>
-                  </div>
-                </div>
-                <div
-                  id="tasks-loading-indicator"
-                  class="tasks-loading-indicator"
-                  hidden
-                >
-                  <div class="spinner-small"></div>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/sidebar.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <link rel="stylesheet" href="../css/tasks.css" />
+
+  <script>
+    if (new URLSearchParams(window.location.search).get("debug") === "1") {
+      console.clear();
+      console.log("%c DEBUG MODE ENABLED ", "background: #ef4444; color: white; font-weight: bold; padding: 4px 8px; border-radius: 4px;");
+    }
+  </script>
+</head>
+<body>
+  <button class="menu-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar-nav">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+
+  <div class="sidebar-overlay" aria-hidden="true"></div>
+
+  <div class="dashboard-shell">
+    <aside class="sidebar" id="sidebar-nav" role="navigation" aria-label="Main navigation">
+      <button class="sidebar-close" aria-label="Close navigation menu">&times;</button>
+
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">IT</div>
+        <span class="sidebar-brand-text">ITWMS</span>
+      </div>
+
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="sidebar-user-avatar">U</div>
+        <div class="sidebar-user-info">
+          <p class="sidebar-user-name" id="sidebar-username">Loading...</p>
+          <p class="sidebar-user-role" id="sidebar-user-role">Loading...</p>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul class="sidebar-menu">
+          <li><a href="dashboard.html" id="sidebar-dashboard"><span class="menu-icon">📊</span><span>Dashboard</span></a></li>
+          <li class="admin-only manager-only"><a href="department.html" id="sidebar-departments"><span class="menu-icon">🏢</span><span>Departments</span></a></li>
+          <li class="admin-only"><a href="users.html" id="sidebar-users"><span class="menu-icon">👥</span><span>Users</span></a></li>
+          <li><a href="notes.html" id="sidebar-notes"><span class="menu-icon">📝</span><span>Notes</span></a></li>
+          <li><a href="tasks.html" id="sidebar-tasks" class="active"><span class="menu-icon">📋</span><span>Tasks</span></a></li>
+          <li class="admin-only"><a href="audit.html" id="sidebar-audit"><span class="menu-icon">🔍</span><span>Audit</span></a></li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="sidebar-footer-btn" id="sidebar-settings-btn"><span class="menu-icon">⚙️</span><span>Settings</span></button>
+        <button class="sidebar-footer-btn" id="sidebar-signout"><span class="menu-icon">🚪</span><span>Sign Out</span></button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="dashboard-header tasks-page-header animate-fade-in">
+        <div>
+          <p class="eyebrow">Work Items</p>
+          <h1>Tasks</h1>
+        </div>
+        <div class="header-actions">
+          <button id="new-task-btn" class="secondary-button" type="button"><span>+</span> Create task</button>
+        </div>
+      </header>
+
+      <section class="tasks-table-section">
+        <article class="department-panel department-table-panel">
+          <div class="module-header tasks-module-header">
+            <div>
+              <p class="module-label">Task List</p>
+              <h2>All Tasks</h2>
+            </div>
+            <div class="tasks-header-actions">
+              <span id="tasks-count" class="column-count">0</span>
+              <div class="filter-group">
+                <div class="select-wrapper">
+                  <select id="status-filter" class="modern-filter-select">
+                    <option value="All">All Tasks</option>
+                    <option value="To_Do">To Do</option>
+                    <option value="Pending_Approval">Pending Approval</option>
+                    <option value="In_Progress">In Progress</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                  <span class="select-icon">▼</span>
                 </div>
               </div>
+              <div id="tasks-loading-indicator" class="tasks-loading-indicator" hidden>
+                <div class="spinner-small"></div>
+              </div>
             </div>
-            <div class="department-table-wrapper">
-              <table class="department-table tasks-table" aria-label="Tasks">
-                <thead>
-                  <tr>
-                    <th scope="col">ID</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Due</th>
-                    <th scope="col">Note</th>
-                    <th scope="col">Assigned</th>
-                    <th scope="col">Updated</th>
-                    <th scope="col" class="department-table-actions">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody id="tasks-table-body"></tbody>
-              </table>
-            </div>
-            <p id="tasks-list-error" class="tasks-inline-error" hidden></p>
-          </article>
-        </section>
-      </main>
-    </div>
-
-    <!-- View task (read-only from API) -->
-    <div
-      id="task-view-modal"
-      class="modal hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="task-view-modal-title"
-    >
-      <div class="modal-content tasks-modal-content">
-        <div class="modal-header">
-          <h3 id="task-view-modal-title">Task</h3>
-          <button
-            type="button"
-            id="close-task-view-modal"
-            class="close-button"
-            aria-label="Close"
-          >
-            &times;
-          </button>
-        </div>
-        <div class="modal-body">
-          <div id="task-detail-body" class="task-detail-body"></div>
-          <p id="task-detail-error" class="tasks-inline-error" hidden></p>
-          <div class="modal-actions tasks-modal-actions">
-            <div
-              id="task-approval-actions"
-              class="task-approval-actions hidden"
-            ></div>
-            <button
-              type="button"
-              id="task-view-edit-btn"
-              class="secondary-button"
-            >
-              Edit
-            </button>
-            <button
-              type="button"
-              id="task-view-delete-btn"
-              class="ghost-button"
-            >
-              Delete
-            </button>
           </div>
+
+          <div class="department-table-wrapper">
+            <table class="department-table tasks-table" aria-label="Tasks">
+              <thead>
+                <tr>
+                  <th scope="col">ID</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Due</th>
+                  <th scope="col">Note</th>
+                  <th scope="col">Assigned</th>
+                  <th scope="col">Updated</th>
+                  <th scope="col" class="department-table-actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tasks-table-body"></tbody>
+            </table>
+          </div>
+          <p id="tasks-list-error" class="tasks-inline-error" hidden></p>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <!-- View Task Modal -->
+  <div id="task-view-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="task-view-title">
+    <div class="modal-content tasks-modal-content">
+      <div class="modal-header">
+        <h3 id="task-view-title">Task Details</h3>
+        <button type="button" id="close-task-view-modal" class="close-button" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="task-detail-body" class="task-detail-body"></div>
+        <p id="task-detail-error" class="tasks-inline-error" hidden></p>
+        <div class="modal-footer tasks-modal-actions">
+          <div id="task-approval-actions" class="task-approval-actions hidden"></div>
+          <button type="button" id="task-view-edit-btn" class="secondary-button">Edit</button>
+          <button type="button" id="task-view-delete-btn" class="ghost-button">Delete</button>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Create / edit task -->
-    <div
-      id="task-form-modal"
-      class="modal hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="task-form-modal-title"
-    >
-      <div class="modal-content tasks-modal-content tasks-modal-content--form">
-        <div class="modal-header">
-          <h3 id="task-form-modal-title">Create task</h3>
-          <button
-            type="button"
-            id="close-task-form-modal"
-            class="close-button"
-            aria-label="Close"
-          >
-            &times;
-          </button>
-        </div>
-        <form id="task-form" class="tasks-modal-form">
-          <div class="form-grid tasks-form-grid">
-            <label class="tasks-form-span">
-              Task name
-              <input
-                name="taskName"
-                type="text"
-                placeholder="Short title"
-                required
-                autocomplete="off"
-              />
-            </label>
-            <label class="tasks-form-span">
-              Description
-              <textarea
-                name="description"
-                rows="3"
-                placeholder="Optional details"
-              ></textarea>
-            </label>
-            <label>
-              Note
-              <select name="noteId" id="task-note-select">
-                <option value="">— None —</option>
-              </select>
-            </label>
-            <label>
-              Assigned to
-              <select name="assignedTo" id="task-assign-select">
-                <option value="">— Unassigned —</option>
-              </select>
-            </label>
-            <label>
-              Status
-              <select name="taskStatus" id="task-status-select">
-                <option value="to_do">To Do</option>
-                <option value="in_progress">In Progress</option>
-                <option value="pending_approval">Pending Approval</option>
-                <option value="completed">Completed</option>
-                <option value="rejected">Rejected</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </label>
-            <label>
-              Due date
-              <input name="dueDate" type="datetime-local" id="task-due-input" />
-            </label>
-          </div>
-          <div class="modal-actions tasks-modal-actions">
-            <button type="submit" class="primary-button" id="task-form-submit">
-              Save task
-            </button>
-            <button id="cancel-task-form" type="button" class="ghost-button">
-              Cancel
-            </button>
-          </div>
-          <p id="task-form-error" class="tasks-inline-error" hidden></p>
-        </form>
+  <!-- Create/Edit Task Modal -->
+  <div id="task-form-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="task-form-title">
+    <div class="modal-content tasks-modal-content tasks-modal-content--form">
+      <div class="modal-header">
+        <h3 id="task-form-title">Create Task</h3>
+        <button type="button" id="close-task-form-modal" class="close-button" aria-label="Close">&times;</button>
       </div>
-    </div>
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="modal hidden">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Account Settings</h3>
-          <button id="close-settings-modal" class="close-button">
-            &times;
-          </button>
-        </div>
-        <div class="modal-body">
-          <section class="settings-section">
-            <h4>Account Information</h4>
-            <div class="account-info">
-              <div class="info-item">
-                <label>Name</label>
-                <p id="modal-account-name">Loading...</p>
-              </div>
-              <div class="info-item">
-                <label>Email</label>
-                <p id="modal-account-email">Loading...</p>
-              </div>
-              <div class="info-item">
-                <label>Role</label>
-                <p id="modal-account-role">Loading...</p>
-              </div>
-              <div class="info-item">
-                <label>Department</label>
-                <p id="modal-account-department">Loading...</p>
-              </div>
-            </div>
-          </section>
-
-          <section class="settings-section">
-            <h4>Password & Security</h4>
-            <div class="security-actions">
-              <button id="reset-password-btn" class="secondary-button">
-                Reset Password
-              </button>
-              <p class="help-text">
-                Click to receive a password reset link via email
-              </p>
-            </div>
-          </section>
-
-          <section class="settings-section">
-            <h4>Account Actions</h4>
-            <div class="account-actions">
-              <button id="signout-modal-btn" class="ghost-button">
-                Sign Out
-              </button>
-              <p class="help-text">Sign out of your account</p>
-            </div>
-          </section>
-        </div>
-      </div>
-    </div>
-
-    <!-- Reset Password Modal -->
-    <div id="reset-modal" class="modal hidden">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4>Reset Password</h4>
-          <button id="close-reset-modal" class="close-button">&times;</button>
-        </div>
-        <form id="reset-password-form">
-          <label>
-            Email
-            <input type="text" name="identifier" required />
+      <form id="task-form" class="tasks-modal-form">
+        <div class="form-grid tasks-form-grid">
+          <label class="tasks-form-span">
+            <span>Task Name</span>
+            <input name="taskName" type="text" placeholder="Short title" required autocomplete="off" />
           </label>
-          <p class="help-text">
-            Enter your email address to receive a reset link.
-          </p>
-          <div class="modal-actions">
-            <button type="button" id="cancel-reset" class="ghost-button">
-              Cancel
-            </button>
-            <button type="submit" class="primary-button">
-              Send reset link
-            </button>
+          <label class="tasks-form-span">
+            <span>Description</span>
+            <textarea name="description" rows="3" placeholder="Optional details"></textarea>
+          </label>
+          <label>
+            <span>Note</span>
+            <select name="noteId" id="task-note-select"><option value="">— None —</option></select>
+          </label>
+          <label>
+            <span>Assigned To</span>
+            <select name="assignedTo" id="task-assign-select"><option value="">— Unassigned —</option></select>
+          </label>
+          <label>
+            <span>Status</span>
+            <select name="taskStatus" id="task-status-select">
+              <option value="to_do">To Do</option>
+              <option value="in_progress">In Progress</option>
+              <option value="pending_approval">Pending Approval</option>
+              <option value="completed">Completed</option>
+              <option value="rejected">Rejected</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </label>
+          <label>
+            <span>Due Date</span>
+            <input name="dueDate" type="datetime-local" id="task-due-input" />
+          </label>
+        </div>
+        <div class="modal-footer tasks-modal-actions">
+          <button type="submit" class="primary-button" id="task-form-submit">Save Task</button>
+          <button id="cancel-task-form" type="button" class="ghost-button">Cancel</button>
+        </div>
+        <p id="task-form-error" class="tasks-inline-error" hidden></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="settings-title">Account Settings</h3>
+        <button id="close-settings-modal" class="close-button" aria-label="Close settings">&times;</button>
+      </div>
+      <div class="modal-body">
+        <section class="settings-section">
+          <h4>Account Information</h4>
+          <div class="account-info">
+            <div class="info-item"><label>Name</label><p id="modal-account-name">Loading...</p></div>
+            <div class="info-item"><label>Email</label><p id="modal-account-email">Loading...</p></div>
+            <div class="info-item"><label>Role</label><p id="modal-account-role">Loading...</p></div>
+            <div class="info-item"><label>Department</label><p id="modal-account-department">Loading...</p></div>
           </div>
-        </form>
+        </section>
+        <section class="settings-section">
+          <h4>Password & Security</h4>
+          <div class="security-actions">
+            <button id="reset-password-btn" class="secondary-button">Reset Password</button>
+            <p class="help-text">Click to receive a password reset link via email</p>
+          </div>
+        </section>
+        <section class="settings-section">
+          <h4>Account Actions</h4>
+          <div class="account-actions">
+            <button id="signout-modal-btn" class="ghost-button">Sign Out</button>
+            <p class="help-text">Sign out of your account</p>
+          </div>
+        </section>
       </div>
     </div>
+  </div>
 
+  <!-- Reset Password Modal -->
+  <div id="reset-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="reset-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 id="reset-title">Reset Password</h4>
+        <button id="close-reset-modal" class="close-button" aria-label="Close reset password">&times;</button>
+      </div>
+      <form id="reset-password-form">
+        <label><span>Email</span><input type="email" name="identifier" placeholder="your@email.com" required autocomplete="email" /></label>
+        <p class="help-text">Enter your email address to receive a reset link.</p>
+        <div class="modal-footer">
+          <button type="button" id="cancel-reset" class="ghost-button">Cancel</button>
+          <button type="submit" class="primary-button">Send reset link</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-    <script src="../js/api-base.js"></script>
-    <script src="../js/rbac.js"></script>
-    <script src="../js/main.js"></script>
-    <script src="../js/notifications.js"></script>
-    <script src="../js/tasks.js"></script>
-  </body>
+  <script src="../js/api-base.js"></script>
+  <script src="../js/rbac.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/tasks.js"></script>
+</body>
 </html>
