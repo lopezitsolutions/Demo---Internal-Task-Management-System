@@ -436,7 +436,7 @@ function renderDepartments(departments) {
     return createCard(`
       <div>
         <p class="card-title">${department.name}</p>
-        <p class="card-meta">Manager: ${manager?.name || "Unassigned"}</p>
+        <p class="card-meta">Manager: ${manager?.nickname || "Unassigned"}</p>
         <div class="card-actions">
           <button class="secondary-button" data-action="edit-department" data-id="${department.id}">Edit</button>
         </div>
