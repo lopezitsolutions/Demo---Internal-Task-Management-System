@@ -148,12 +148,14 @@
     </div>
   </main>
 
+  <div id="dcwPoweredBy" style="position:fixed;bottom:18px;right:18px;z-index:1000;background:rgba(15,23,42,0.75);color:#f1f5f9;font-size:11.5px;padding:7px 12px;border-radius:20px;letter-spacing:.2px;font-family:inherit;">Powered by <a href="https://theloftitsolutions.com" target="_blank" rel="noopener" style="color:#f1f5f9;">The Loft IT Solutions</a></div>
+
   <script>
     function enterDemo(role) {
       const users = {
         Admin: {
           id: 1,
-          nickname: "Alex Admin",
+          nickname: "Admin User",
           email: "admin@itwms.demo",
           roleName: "Admin",
           depName: "Operations",
@@ -162,7 +164,7 @@
         },
         Manager: {
           id: 2,
-          nickname: "Maria Manager",
+          nickname: "Manager User",
           email: "manager@itwms.demo",
           roleName: "Manager",
           depName: "Operations",
@@ -171,8 +173,8 @@
         },
         Employee: {
           id: 4,
-          nickname: "Sarah Dev",
-          email: "sarah@itwms.demo",
+          nickname: "Employee User",
+          email: "employee@itwms.demo",
           roleName: "Employee",
           depName: "Engineering",
           department: { id: 2, name: "Engineering" },

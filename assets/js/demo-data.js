@@ -9,7 +9,7 @@ const DEMO_DATA = {
     {
       id: 1,
       email: "admin@itwms.demo",
-      nickname: "Alex Admin",
+      nickname: "Admin User",
       phoneNum: "+1-555-0101",
       depId: 1,
       department: { id: 1, name: "Operations" },
@@ -23,7 +23,7 @@ const DEMO_DATA = {
     {
       id: 2,
       email: "manager@itwms.demo",
-      nickname: "Maria Manager",
+      nickname: "Manager User",
       phoneNum: "+1-555-0102",
       depId: 1,
       department: { id: 1, name: "Operations" },
@@ -37,7 +37,7 @@ const DEMO_DATA = {
     {
       id: 3,
       email: "lead@itwms.demo",
-      nickname: "David Lead",
+      nickname: "Team Lead User",
       phoneNum: "+1-555-0103",
       depId: 2,
       department: { id: 2, name: "Engineering" },
@@ -50,8 +50,8 @@ const DEMO_DATA = {
     },
     {
       id: 4,
-      email: "sarah@itwms.demo",
-      nickname: "Sarah Dev",
+      email: "employee1@itwms.demo",
+      nickname: "Developer User 1",
       phoneNum: "+1-555-0104",
       depId: 2,
       department: { id: 2, name: "Engineering" },
@@ -64,8 +64,8 @@ const DEMO_DATA = {
     },
     {
       id: 5,
-      email: "james@itwms.demo",
-      nickname: "James Dev",
+      email: "employee2@itwms.demo",
+      nickname: "Developer User 2",
       phoneNum: "+1-555-0105",
       depId: 2,
       department: { id: 2, name: "Engineering" },
@@ -78,8 +78,8 @@ const DEMO_DATA = {
     },
     {
       id: 6,
-      email: "lisa@itwms.demo",
-      nickname: "Lisa QA",
+      email: "employee3@itwms.demo",
+      nickname: "QA User 1",
       phoneNum: "+1-555-0106",
       depId: 3,
       department: { id: 3, name: "Quality Assurance" },
@@ -92,8 +92,8 @@ const DEMO_DATA = {
     },
     {
       id: 7,
-      email: "tom@itwms.demo",
-      nickname: "Tom QA",
+      email: "employee4@itwms.demo",
+      nickname: "QA User 2",
       phoneNum: "+1-555-0107",
       depId: 3,
       department: { id: 3, name: "Quality Assurance" },
@@ -106,8 +106,8 @@ const DEMO_DATA = {
     },
     {
       id: 8,
-      email: "anna@itwms.demo",
-      nickname: "Anna HR",
+      email: "employee5@itwms.demo",
+      nickname: "HR User",
       phoneNum: "+1-555-0108",
       depId: 4,
       department: { id: 4, name: "Human Resources" },
