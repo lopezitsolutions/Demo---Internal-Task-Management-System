@@ -140,14 +140,14 @@ function renderStats(stats) {
 
   const html = `
     <article class="stat-card">
-      <div class="stat-icon">📋</div>
+      <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M9 3h6a1 1 0 0 1 1 1v2H8V4a1 1 0 0 1 1-1z"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="15" y2="15"/></svg></div>
       <div class="stat-value">${tasksTotal}</div>
       <p class="stat-label">Total Tasks</p>
   
       </p>
     </article>
     <article class="stat-card">
-      <div class="stat-icon">📝</div>
+      <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
       <div class="stat-value">${notesTotal}</div>
       <p class="stat-label">Total Notes</p>
       </p>

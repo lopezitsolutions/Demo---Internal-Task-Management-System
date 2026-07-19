@@ -1121,7 +1121,7 @@ function renderTasks() {
       <tr class="department-table-empty">
         <td colspan="8">
           <div class="tasks-empty-state">
-            <i>📋</i>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M9 3h6a1 1 0 0 1 1 1v2H8V4a1 1 0 0 1 1-1z"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
             <p>No${statusLabel} tasks found.</p>
           </div>
         </td>
