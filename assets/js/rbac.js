@@ -20,6 +20,7 @@ const PERMISSIONS = {
       "tasks",
       "notes",
       "audit",
+      "reports",
       "settings",
       "create-issue",
     ],
@@ -58,9 +59,9 @@ const PERMISSIONS = {
     },
   },
   [ROLES.MANAGER]: {
-    modules: ["dashboard", "tasks", "notes", "department", "settings"],
+    modules: ["dashboard", "tasks", "notes", "department", "users", "audit", "reports", "settings"],
     users: {
-      view: false,
+      view: true,
       create: false,
       edit: false,
       delete: false,
@@ -86,7 +87,7 @@ const PERMISSIONS = {
       delete: true,
     },
     audit: {
-      view: false,
+      view: true,
     },
     settings: {
       view: true,
@@ -94,7 +95,7 @@ const PERMISSIONS = {
     },
   },
   [ROLES.EMPLOYEE]: {
-    modules: ["dashboard", "tasks", "settings", "notes"],
+    modules: ["dashboard", "tasks", "settings", "notes", "audit", "reports"],
     users: {
       view: false,
       create: false,
@@ -123,7 +124,7 @@ const PERMISSIONS = {
       delete: false,
     },
     audit: {
-      view: false,
+      view: true,
     },
     settings: {
       view: true,
@@ -139,6 +140,7 @@ const MODULE_BY_PAGE = {
   "tasks.html": "tasks",
   "notes.html": "notes",
   "audit.html": "audit",
+  "reports.html": "reports",
   "settings.html": "settings",
   "create-issue.html": "create-issue",
 };
@@ -501,6 +503,7 @@ function updateSidebarByRole() {
     tasks: "sidebar-tasks",
     notes: "sidebar-notes",
     audit: "sidebar-audit",
+    reports: "sidebar-reports",
     settings: "sidebar-settings",
     "create-issue": "sidebar-create-issue",
   };
