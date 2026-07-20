@@ -36,6 +36,7 @@
       tasks: deepClone(window.DEMO_DATA.tasks),
       auditTrails: deepClone(window.DEMO_DATA.auditTrails),
       stats: deepClone(window.DEMO_DATA.stats),
+      reports: deepClone(window.DEMO_DATA.reports || []),
     };
     console.log("[demo-store] Store initialized with", store.users.length, "users,");
     console.log("[demo-store]", store.departments.length, "departments,");
@@ -51,6 +52,7 @@
     notes: 100,
     tasks: 100,
     auditTrails: 100,
+    reports: 100,
   };
 
   function generateId(entity) {
@@ -413,6 +415,150 @@
     return task.collaborators.length < before;
   }
 
+  // ─── Employee Reports ───
+  const REPORT_STATUSES = ["draft", "submitted", "reviewed", "archived"];
+  const REPORT_TRANSITIONS = {
+    draft: ["submitted"],
+    submitted: ["reviewed", "draft"],
+    reviewed: ["archived", "submitted"],
+    archived: ["reviewed"],
+  };
+
+  function decorateReport(report) {
+    if (!report) return report;
+    const author = store.users.find((u) => u.id === report.userId);
+    const dept = store.departments.find((d) => d.id === report.depId);
+    return {
+      ...report,
+      user: author ? { id: author.id, nickname: author.nickname, email: author.email } : null,
+      author: author ? { id: author.id, nickname: author.nickname, email: author.email } : null,
+      department: dept ? { id: dept.id, depName: dept.depName || dept.name } : null,
+    };
+  }
+
+  function getReports(filters) {
+    filters = filters || {};
+    let reports = store.reports.filter((r) => r.deletedAt === null || r.deletedAt === undefined);
+
+    const roleUser = getCurrentUser();
+    const roleName = roleUser ? (roleUser.roleName || roleUser.role?.name) : null;
+
+    if (roleName === "Employee") {
+      reports = reports.filter((r) => String(r.userId) === String(roleUser.id));
+    } else if (roleName === "Manager") {
+      const managerDepId = roleUser.depId ?? roleUser.department?.id;
+      if (managerDepId != null) {
+        reports = reports.filter((r) => String(r.depId) === String(managerDepId));
+      }
+    }
+
+    if (filters.userId || filters.authorId) {
+      const uid = filters.userId || filters.authorId;
+      reports = reports.filter((r) => String(r.userId) === String(uid));
+    }
+    if (filters.depId) {
+      reports = reports.filter((r) => String(r.depId) === String(filters.depId));
+    }
+    if (filters.status) {
+      reports = reports.filter((r) => r.status === filters.status);
+    } else {
+      reports = reports.filter((r) => r.status !== "archived");
+    }
+    if (filters.from) {
+      reports = reports.filter((r) => r.createdAt >= filters.from);
+    }
+    if (filters.to) {
+      reports = reports.filter((r) => r.createdAt <= filters.to + "T23:59:59Z");
+    }
+
+    reports = reports.filter((r) => r.status !== "draft" || String(r.userId) === String(roleUser?.id));
+
+    reports = reports.slice().sort((a, b) => (b.id || 0) - (a.id || 0));
+    return reports.map(decorateReport);
+  }
+
+  function getReportById(id) {
+    const report = store.reports.find((r) => String(r.id) === String(id) && (r.deletedAt === null || r.deletedAt === undefined));
+    return report ? decorateReport(report) : null;
+  }
+
+  function createReport(data) {
+    const authUser = getCurrentUser();
+    const roleName = authUser ? (authUser.roleName || authUser.role?.name) : "Employee";
+    const report = {
+      id: generateId("reports"),
+      userId: authUser?.id || null,
+      depId: roleName === "Admin" && data.depId ? data.depId : (authUser?.depId ?? authUser?.department?.id ?? null),
+      title: data.title || "",
+      content: data.content || "",
+      reportType: data.reportType || "general",
+      status: REPORT_STATUSES.includes(data.status) ? data.status : "draft",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      deletedAt: null,
+    };
+    store.reports.push(report);
+    addAuditTrail("CREATE", "reports", String(report.id), null, report);
+    return decorateReport(report);
+  }
+
+  function updateReport(id, data) {
+    const idx = store.reports.findIndex((r) => String(r.id) === String(id));
+    if (idx === -1) return null;
+    const authUser = getCurrentUser();
+    const roleName = authUser ? (authUser.roleName || authUser.role?.name) : "Employee";
+    const report = store.reports[idx];
+    const oldReport = deepClone(report);
+
+    if (report.status !== "draft" && roleName !== "Admin") {
+      return { __error: "Only draft reports can be edited. Submit for review instead." };
+    }
+
+    if (data.title !== undefined) report.title = data.title;
+    if (data.content !== undefined) report.content = data.content;
+    if (data.reportType !== undefined) report.reportType = data.reportType;
+    if (data.status !== undefined && REPORT_STATUSES.includes(data.status)) report.status = data.status;
+    report.updatedAt = new Date().toISOString();
+
+    addAuditTrail("UPDATE", "reports", String(id), oldReport, report);
+    return decorateReport(report);
+  }
+
+  function updateReportStatus(id, status) {
+    const idx = store.reports.findIndex((r) => String(r.id) === String(id));
+    if (idx === -1) return { __error: "Report not found" };
+    if (!REPORT_STATUSES.includes(status)) return { __error: "Invalid status" };
+
+    const report = store.reports[idx];
+    const oldReport = deepClone(report);
+    const authUser = getCurrentUser();
+    const roleName = authUser ? (authUser.roleName || authUser.role?.name) : "Employee";
+    const isOwner = authUser && String(authUser.id) === String(report.userId);
+
+    const currentStatus = report.status;
+    if (currentStatus !== status && !(REPORT_TRANSITIONS[currentStatus] || []).includes(status)) {
+      return { __error: `Invalid status transition from '${currentStatus}' to '${status}'` };
+    }
+
+    if (status === "submitted" && !isOwner && roleName !== "Admin") {
+      return { __error: "Forbidden: Only the report owner can submit" };
+    }
+    if ((status === "reviewed" || status === "archived") && roleName !== "Admin" && roleName !== "Manager") {
+      return { __error: "Forbidden: Only admin or manager can review/archive" };
+    }
+    if (roleName === "Manager") {
+      const managerDepId = authUser.depId ?? authUser.department?.id;
+      if (managerDepId == null || String(managerDepId) !== String(report.depId)) {
+        return { __error: "Forbidden: Can only manage reports in your own department" };
+      }
+    }
+
+    report.status = status;
+    report.updatedAt = new Date().toISOString();
+    addAuditTrail("UPDATE", "reports", String(id), oldReport, report);
+    return decorateReport(report);
+  }
+
   // ─── Audit Trails ───
   function getAuditTrails(filters) {
     let trails = [...store.auditTrails];
@@ -556,6 +702,12 @@
     getTaskCollaborators,
     addTaskCollaborator,
     removeTaskCollaborator,
+    // Reports
+    getReports,
+    getReportById,
+    createReport,
+    updateReport,
+    updateReportStatus,
     // Audit
     getAuditTrails,
     // Stats
