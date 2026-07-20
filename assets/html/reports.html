@@ -9,8 +9,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
   <meta name="theme-color" content="#08111f" />
   <meta name="color-scheme" content="dark" />
-  <meta name="description" content="TaskFlow - Reports & Analytics" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:* http://localhost:* https:; img-src 'self' data:; font-src 'self' data:;" />
+  <meta name="description" content="TaskFlow - Employee Reports" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' http://127.0.0.1:* http://localhost:* https:; img-src 'self' data:; font-src 'self' https://cdn.jsdelivr.net data:;" />
 
   <title>Reports | TaskFlow</title>
 
@@ -21,6 +21,8 @@
   <link rel="stylesheet" href="../css/sidebar.css" />
   <link rel="stylesheet" href="../css/dashboard.css" />
   <link rel="stylesheet" href="../css/department.css" />
+  <link rel="stylesheet" href="../css/tasks.css" />
+  <link rel="stylesheet" href="../css/reports.css" />
 
   <script>
     if (new URLSearchParams(window.location.search).get("debug") === "1") {
@@ -28,16 +30,6 @@
       console.log("%c DEBUG MODE ENABLED ", "background: #ef4444; color: white; font-weight: bold; padding: 4px 8px; border-radius: 4px;");
     }
   </script>
-
-  <style>
-    .report-panel { margin-bottom: 24px; }
-    .report-bar-row { display: flex; align-items: center; gap: 14px; padding: 10px 0; }
-    .report-bar-label { flex: 0 0 160px; font-size: 0.9rem; color: var(--text-secondary); }
-    .report-bar-track { flex: 1; height: 10px; border-radius: var(--radius-full); background: var(--surface-alt); overflow: hidden; }
-    .report-bar-fill { height: 100%; border-radius: var(--radius-full); transition: width 0.4s ease; }
-    .report-bar-count { flex: 0 0 44px; text-align: right; font-weight: 600; font-size: 0.9rem; color: var(--text); }
-    .report-empty { color: var(--text-muted); font-size: 0.9rem; padding: 12px 0; }
-  </style>
 </head>
 <body>
   <button class="menu-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar-nav">
@@ -71,10 +63,10 @@
         <ul class="sidebar-menu">
           <li><a href="dashboard.html" id="sidebar-dashboard"><span class="menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span>Dashboard</span></a></li>
           <li class="admin-only manager-only"><a href="department.html" id="sidebar-departments"><span class="menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m-1 4h1m4-4h1m-1 4h1"/></svg></span><span>Departments</span></a></li>
-          <li class="admin-only"><a href="users.html" id="sidebar-users"><span class="menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span>Users</span></a></li>
+          <li class="admin-only manager-only"><a href="users.html" id="sidebar-users"><span class="menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span>Users</span></a></li>
           <li><a href="notes.html" id="sidebar-notes"><span class="menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span><span>Notes</span></a></li>
           <li><a href="tasks.html" id="sidebar-tasks"><span class="menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M9 3h6a1 1 0 0 1 1 1v2H8V4a1 1 0 0 1 1-1z"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="15" y2="15"/></svg></span><span>Tasks</span></a></li>
-          <li class="admin-only"><a href="audit.html" id="sidebar-audit"><span class="menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span>Audit</span></a></li>
+          <li><a href="audit.html" id="sidebar-audit"><span class="menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span>Audit</span></a></li>
           <li><a href="reports.html" id="sidebar-reports" class="active"><span class="menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></span><span>Reports</span></a></li>
         </ul>
       </nav>
@@ -88,77 +80,110 @@
     <main class="main-content">
       <header class="dashboard-header tasks-page-header animate-fade-in">
         <div>
-          <p class="eyebrow">Analytics</p>
+          <p class="eyebrow">Employee Reporting</p>
           <h1>Reports</h1>
-          <p class="meta-text" id="reports-scope-label"></p>
-        </div>
-        <div class="header-actions">
-          <button id="reports-refresh-btn" class="ghost-button" type="button">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:4px;"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-            Refresh
-          </button>
-          <button id="reports-export-btn" class="secondary-button" type="button">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Export Report
-          </button>
+          <p class="meta-text">Write, submit, and review employee reports</p>
         </div>
       </header>
 
-      <section class="stats-section" aria-label="Report statistics">
-        <div class="stats-toolbar">
-          <h2 class="stats-title">Overview</h2>
-        </div>
-        <div id="reports-stats-grid" class="stats-grid stagger-children"></div>
-      </section>
-
-      <section class="modules-grid stagger-children">
-        <article class="module-panel report-panel" id="status-breakdown-panel">
-          <div class="module-header">
+      <section class="reports-feed-section">
+        <article class="department-panel department-table-panel reports-feed-panel">
+          <div class="module-header tasks-module-header reports-feed-toolbar">
             <div>
-              <p class="module-label">Distribution</p>
-              <h2>Tasks by Status</h2>
+              <p class="module-label">Report feed</p>
+              <h2>All Reports Feed</h2>
+            </div>
+            <div class="tasks-header-actions reports-header-actions">
+              <div class="select-wrapper">
+                <select id="reports-status-filter" class="modern-filter-select">
+                  <option value="">All Status</option>
+                  <option value="submitted">Submitted</option>
+                  <option value="reviewed">Reviewed</option>
+                  <option value="archived">Archived</option>
+                </select>
+                <span class="select-icon">▼</span>
+              </div>
+              <div class="select-wrapper reports-admin-filter" id="reports-dep-filter-wrap" hidden>
+                <select id="reports-dep-filter" class="modern-filter-select" aria-label="Filter by department">
+                  <option value="">All Departments</option>
+                </select>
+                <span class="select-icon">▼</span>
+              </div>
+              <div class="select-wrapper reports-admin-filter" id="reports-user-filter-wrap" hidden>
+                <select id="reports-user-filter" class="modern-filter-select" aria-label="Filter by user">
+                  <option value="">All Users</option>
+                </select>
+                <span class="select-icon">▼</span>
+              </div>
+              <div class="reports-date-filter">
+                <input type="date" id="reports-date-from" class="modern-filter-select reports-date-input" aria-label="Filter reports from date" />
+                <span class="reports-date-sep" aria-hidden="true">&ndash;</span>
+                <input type="date" id="reports-date-to" class="modern-filter-select reports-date-input" aria-label="Filter reports to date" />
+                <button type="button" id="reports-date-clear" class="ghost-button reports-date-clear" hidden aria-label="Clear date filter">&times;</button>
+              </div>
+              <div class="select-wrapper">
+                <select id="reports-sort-select" class="modern-filter-select">
+                  <option value="updatedAt-desc">Recently updated</option>
+                  <option value="createdAt-desc">Recently created</option>
+                  <option value="title-asc">Title (A&ndash;Z)</option>
+                  <option value="status-asc">Status</option>
+                </select>
+                <span class="select-icon">▼</span>
+              </div>
+              <span id="reports-count" class="column-count">0</span>
+              <button id="create-report-btn" class="secondary-button toolbar-create-btn" type="button">Create report</button>
             </div>
           </div>
-          <div id="status-breakdown-body"></div>
-        </article>
-
-        <article class="module-panel report-panel admin-only manager-only" id="department-breakdown-panel">
-          <div class="module-header">
-            <div>
-              <p class="module-label">Distribution</p>
-              <h2>Tasks by Department</h2>
-            </div>
-          </div>
-          <div id="department-breakdown-body"></div>
-        </article>
-      </section>
-
-      <section class="tasks-table-section admin-only manager-only" id="contributors-section">
-        <article class="department-panel department-table-panel">
-          <div class="module-header">
-            <div>
-              <p class="module-label">Performance</p>
-              <h2>Top Contributors</h2>
-            </div>
-            <span id="contributors-count" class="column-count">0</span>
-          </div>
-          <div class="department-table-wrapper">
-            <table class="department-table tasks-table" aria-label="Top Contributors">
-              <thead>
-                <tr>
-                  <th scope="col">User</th>
-                  <th scope="col">Department</th>
-                  <th scope="col">Completed</th>
-                  <th scope="col">Assigned</th>
-                  <th scope="col">Completion Rate</th>
-                </tr>
-              </thead>
-              <tbody id="contributors-table-body"></tbody>
-            </table>
-          </div>
+          <div id="reports-feed" class="reports-feed" aria-live="polite" aria-label="All reports feed"></div>
+          <p id="reports-list-error" class="tasks-inline-error" hidden></p>
         </article>
       </section>
     </main>
+  </div>
+
+  <!-- Report Form Modal -->
+  <div id="report-form-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="report-form-modal-title">
+    <div class="modal-content tasks-modal-content tasks-modal-content--form">
+      <div class="modal-header">
+        <h3 id="report-form-modal-title">Create report</h3>
+        <button type="button" id="close-report-form-modal" class="close-button" aria-label="Close">&times;</button>
+      </div>
+      <form id="report-form" class="tasks-modal-form">
+        <div class="form-grid tasks-form-grid">
+          <label class="tasks-form-span">
+            Report title
+            <input name="title" type="text" placeholder="Enter report title" required maxlength="255" />
+          </label>
+          <div class="tasks-form-span report-content-field">
+            <span class="report-content-label">Content</span>
+            <div class="report-editor-wrap">
+              <div id="report-editor"></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer tasks-modal-actions">
+          <button type="submit" class="primary-button" id="report-form-submit">Save as draft</button>
+          <button type="button" id="submit-report-btn" class="secondary-button">Submit report</button>
+          <button id="cancel-report-form" type="button" class="ghost-button">Cancel</button>
+        </div>
+        <p id="report-form-error" class="tasks-inline-error" hidden></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Report View Modal -->
+  <div id="report-view-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="report-view-modal-title">
+    <div class="modal-content tasks-modal-content">
+      <div class="modal-header">
+        <h3 id="report-view-modal-title">Report</h3>
+        <button type="button" id="close-report-view-modal" class="close-button" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body" id="report-detail-body"></div>
+      <div class="modal-footer tasks-modal-actions" id="report-view-actions">
+        <button type="button" id="report-view-edit-btn" class="secondary-button">Edit</button>
+        <button type="button" id="report-view-archive-btn" class="ghost-button">Archive</button>
+      </div>
+    </div>
   </div>
 
   <!-- Settings Modal -->
@@ -200,6 +225,7 @@
   <script src="../js/rbac.js"></script>
   <script src="../js/main.js"></script>
   <script src="../js/notifications.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ckeditor/ckeditor5-build-classic@43.3.1/build/ckeditor.js"></script>
   <script src="../js/reports.js"></script>
 
   <div id="dcwPoweredBy" style="position:fixed;bottom:18px;right:18px;z-index:1000;background:rgba(15,23,42,0.85);color:#f1f5f9;font-size:11.5px;padding:7px 12px;border-radius:20px;letter-spacing:.2px;font-family:inherit;">Powered by <a href="https://theloftitsolutions.com" target="_blank" rel="noopener" style="color:#f1f5f9;">The Loft IT Solutions</a></div>

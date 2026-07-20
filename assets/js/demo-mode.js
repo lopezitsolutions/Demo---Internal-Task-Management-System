@@ -57,7 +57,19 @@
     ],
     stats: {
       overview: { tasks: { total: 10 }, notes: { total: 5 } }
-    }
+    },
+    reports: [
+      { id: 1, userId: 4, depId: 2, title: "Weekly Engineering Status Update", content: "<p>Completed the API v2 specification draft and started work on the authentication middleware. No blockers this week.</p>", reportType: "weekly", status: "submitted", createdAt: "2024-06-14T09:00:00Z", updatedAt: "2024-06-14T09:00:00Z", deletedAt: null },
+      { id: 2, userId: 5, depId: 2, title: "Sprint Accomplishments - Sprint 14", content: "<p>Delivered the JWT authentication middleware and closed out 6 tickets. Paired with QA on the regression suite.</p>", reportType: "accomplishment", status: "reviewed", createdAt: "2024-06-10T10:30:00Z", updatedAt: "2024-06-16T11:00:00Z", deletedAt: null },
+      { id: 3, userId: 6, depId: 3, title: "QA Regression Testing Summary", content: "<p>Ran the full regression suite against staging. 3 minor defects logged, none blocking release.</p>", reportType: "weekly", status: "submitted", createdAt: "2024-06-17T08:15:00Z", updatedAt: "2024-06-17T08:15:00Z", deletedAt: null },
+      { id: 4, userId: 7, depId: 3, title: "Production Incident Concern - API Latency", content: "<p>Noticed elevated response times on the search endpoint during peak hours. Recommend investigating before next release.</p>", reportType: "concern", status: "reviewed", createdAt: "2024-06-12T13:45:00Z", updatedAt: "2024-06-15T09:20:00Z", deletedAt: null },
+      { id: 5, userId: 8, depId: 4, title: "Onboarding Process Notes (Draft)", content: "<p>Draft outline for the updated new-hire onboarding checklist. Still needs the IT provisioning section.</p>", reportType: "general", status: "draft", createdAt: "2024-06-19T14:00:00Z", updatedAt: "2024-06-19T14:00:00Z", deletedAt: null },
+      { id: 6, userId: 2, depId: 1, title: "Monthly Operations Summary - May", content: "<p>All operational KPIs on target for May. Vendor onboarding for the new logistics partner completed ahead of schedule.</p>", reportType: "monthly", status: "archived", createdAt: "2024-06-01T08:00:00Z", updatedAt: "2024-06-05T10:00:00Z", deletedAt: null },
+      { id: 7, userId: 4, depId: 2, title: "Daily Standup Notes - June 20", content: "<p>Continuing work on the authentication middleware. Planning to start integration tests tomorrow.</p>", reportType: "daily", status: "draft", createdAt: "2024-06-20T08:05:00Z", updatedAt: "2024-06-20T08:05:00Z", deletedAt: null },
+      { id: 8, userId: 8, depId: 4, title: "Team Offsite Planning Update", content: "<p>Venue shortlisted and agenda draft shared with leadership for feedback. Booking confirmation expected next week.</p>", reportType: "operational", status: "submitted", createdAt: "2024-06-18T11:30:00Z", updatedAt: "2024-06-18T11:30:00Z", deletedAt: null },
+      { id: 9, userId: 3, depId: 2, title: "Security Audit Remediation Progress", content: "<p>2 of 3 findings from the security audit have been remediated. SQL injection patch is live; penetration re-test scheduled.</p>", reportType: "weekly", status: "reviewed", createdAt: "2024-06-16T09:00:00Z", updatedAt: "2024-06-20T14:00:00Z", deletedAt: null },
+      { id: 10, userId: 1, depId: 1, title: "Customer Feedback Themes - Q2", content: "<p>Top themes from Q2 feedback: onboarding clarity, mobile performance, and support response time. Summary shared with department leads.</p>", reportType: "accomplishment", status: "archived", createdAt: "2024-06-05T12:00:00Z", updatedAt: "2024-06-08T09:30:00Z", deletedAt: null }
+    ]
   };
 
   // ─── IMMEDIATE FETCH INTERCEPTOR ───
@@ -231,10 +243,11 @@
       notes: deepClone(EMBEDDED_DEMO_DATA.notes),
       tasks: deepClone(EMBEDDED_DEMO_DATA.tasks),
       auditTrails: deepClone(EMBEDDED_DEMO_DATA.auditTrails),
-      stats: deepClone(EMBEDDED_DEMO_DATA.stats)
+      stats: deepClone(EMBEDDED_DEMO_DATA.stats),
+      reports: deepClone(EMBEDDED_DEMO_DATA.reports)
     };
 
-    let nextId = { users: 100, departments: 100, notes: 100, tasks: 100, auditTrails: 100 };
+    let nextId = { users: 100, departments: 100, notes: 100, tasks: 100, auditTrails: 100, reports: 100 };
     function generateId(entity) { return nextId[entity]++; }
 
     function getUsers() { return store.users.filter(u => u.deletedAt === null || u.deletedAt === undefined); }
@@ -409,6 +422,154 @@
       return task.collaborators.length < before;
     }
 
+    // ─── Employee Reports ───
+    const REPORT_STATUSES = ["draft", "submitted", "reviewed", "archived"];
+    const REPORT_TRANSITIONS = {
+      draft: ["submitted"],
+      submitted: ["reviewed", "draft"],
+      reviewed: ["archived", "submitted"],
+      archived: ["reviewed"],
+    };
+
+    function decorateReport(report) {
+      if (!report) return report;
+      const author = store.users.find(u => u.id === report.userId);
+      const dept = store.departments.find(d => d.id === report.depId);
+      return {
+        ...report,
+        user: author ? { id: author.id, nickname: author.nickname, email: author.email } : null,
+        author: author ? { id: author.id, nickname: author.nickname, email: author.email } : null,
+        department: dept ? { id: dept.id, depName: dept.depName || dept.name } : null,
+      };
+    }
+
+    function getReports(filters) {
+      filters = filters || {};
+      let reports = store.reports.filter(r => r.deletedAt === null || r.deletedAt === undefined);
+
+      const roleUser = getCurrentUser();
+      const roleName = roleUser ? (roleUser.roleName || roleUser.role?.name) : null;
+
+      // Server-side role scoping, mirrors ReportController.php
+      if (roleName === "Employee") {
+        reports = reports.filter(r => String(r.userId) === String(roleUser.id));
+      } else if (roleName === "Manager") {
+        const managerDepId = roleUser.depId ?? roleUser.department?.id;
+        if (managerDepId != null) {
+          reports = reports.filter(r => String(r.depId) === String(managerDepId));
+        }
+      }
+
+      if (filters.userId || filters.authorId) {
+        const uid = filters.userId || filters.authorId;
+        reports = reports.filter(r => String(r.userId) === String(uid));
+      }
+      if (filters.depId) {
+        reports = reports.filter(r => String(r.depId) === String(filters.depId));
+      }
+      if (filters.status) {
+        reports = reports.filter(r => r.status === filters.status);
+      } else {
+        // Exclude archived by default, matching EmployeeReport::filter()
+        reports = reports.filter(r => r.status !== "archived");
+      }
+      if (filters.from) {
+        reports = reports.filter(r => r.createdAt >= filters.from);
+      }
+      if (filters.to) {
+        reports = reports.filter(r => r.createdAt <= filters.to + "T23:59:59Z");
+      }
+
+      // Drafts are only visible to their own author, regardless of role
+      reports = reports.filter(r => r.status !== "draft" || String(r.userId) === String(roleUser?.id));
+
+      reports = reports.slice().sort((a, b) => (b.id || 0) - (a.id || 0));
+      return reports.map(decorateReport);
+    }
+
+    function getReportById(id) {
+      const report = store.reports.find(r => String(r.id) === String(id) && (r.deletedAt === null || r.deletedAt === undefined));
+      return report ? decorateReport(report) : null;
+    }
+
+    function createReport(data) {
+      const authUser = getCurrentUser();
+      const roleName = authUser ? (authUser.roleName || authUser.role?.name) : "Employee";
+      const report = {
+        id: generateId("reports"),
+        userId: authUser?.id || null,
+        depId: roleName === "Admin" && data.depId ? data.depId : (authUser?.depId ?? authUser?.department?.id ?? null),
+        title: data.title || "",
+        content: data.content || "",
+        reportType: data.reportType || "general",
+        status: REPORT_STATUSES.includes(data.status) ? data.status : "draft",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        deletedAt: null,
+      };
+      store.reports.push(report);
+      addAuditTrail("CREATE", "reports", String(report.id), null, report);
+      return decorateReport(report);
+    }
+
+    function updateReport(id, data) {
+      const idx = store.reports.findIndex(r => String(r.id) === String(id));
+      if (idx === -1) return null;
+      const authUser = getCurrentUser();
+      const roleName = authUser ? (authUser.roleName || authUser.role?.name) : "Employee";
+      const report = store.reports[idx];
+      const oldReport = deepClone(report);
+
+      // Only draft reports can be edited by non-admins (matches EmployeeReport::update)
+      if (report.status !== "draft" && roleName !== "Admin") {
+        return { __error: "Only draft reports can be edited. Submit for review instead." };
+      }
+
+      if (data.title !== undefined) report.title = data.title;
+      if (data.content !== undefined) report.content = data.content;
+      if (data.reportType !== undefined) report.reportType = data.reportType;
+      if (data.status !== undefined && REPORT_STATUSES.includes(data.status)) report.status = data.status;
+      report.updatedAt = new Date().toISOString();
+
+      addAuditTrail("UPDATE", "reports", String(id), oldReport, report);
+      return decorateReport(report);
+    }
+
+    function updateReportStatus(id, status) {
+      const idx = store.reports.findIndex(r => String(r.id) === String(id));
+      if (idx === -1) return { __error: "Report not found" };
+      if (!REPORT_STATUSES.includes(status)) return { __error: "Invalid status" };
+
+      const report = store.reports[idx];
+      const oldReport = deepClone(report);
+      const authUser = getCurrentUser();
+      const roleName = authUser ? (authUser.roleName || authUser.role?.name) : "Employee";
+      const isOwner = authUser && String(authUser.id) === String(report.userId);
+
+      const currentStatus = report.status;
+      if (currentStatus !== status && !(REPORT_TRANSITIONS[currentStatus] || []).includes(status)) {
+        return { __error: `Invalid status transition from '${currentStatus}' to '${status}'` };
+      }
+
+      if (status === "submitted" && !isOwner && roleName !== "Admin") {
+        return { __error: "Forbidden: Only the report owner can submit" };
+      }
+      if ((status === "reviewed" || status === "archived") && roleName !== "Admin" && roleName !== "Manager") {
+        return { __error: "Forbidden: Only admin or manager can review/archive" };
+      }
+      if (roleName === "Manager") {
+        const managerDepId = authUser.depId ?? authUser.department?.id;
+        if (managerDepId == null || String(managerDepId) !== String(report.depId)) {
+          return { __error: "Forbidden: Can only manage reports in your own department" };
+        }
+      }
+
+      report.status = status;
+      report.updatedAt = new Date().toISOString();
+      addAuditTrail("UPDATE", "reports", String(id), oldReport, report);
+      return decorateReport(report);
+    }
+
     function getAuditTrails(filters) {
       let trails = [...store.auditTrails];
       if (filters) {
@@ -453,6 +614,7 @@
       getNotes, getNoteById, createNote, updateNote, deleteNote,
       getTasks, getMyTasks, getTaskById, createTask, updateTask, deleteTask,
       getTaskCollaborators, addTaskCollaborator, removeTaskCollaborator,
+      getReports, getReportById, createReport, updateReport, updateReportStatus,
       getAuditTrails,
       getStats,
       setCurrentUser, getCurrentUser, getUserProfile
@@ -579,6 +741,24 @@
       const taskId = removeCollabMatch[1];
       const userId = removeCollabMatch[2];
       if (method === "DELETE") return handleRemoveCollaborator(taskId, userId);
+    }
+
+    // ─── REPORTS ───
+    const reportsMatch = path.match(/^\/api\/reports\/?$/);
+    if (reportsMatch) {
+      if (method === "GET") return handleGetReports(query);
+      if (method === "POST") return handleCreateReport(body);
+    }
+    const reportStatusMatch = path.match(/^\/api\/reports\/(\d+)\/status\/?$/);
+    if (reportStatusMatch) {
+      const id = reportStatusMatch[1];
+      if (method === "PUT" || method === "PATCH") return handleUpdateReportStatus(id, body);
+    }
+    const reportByIdMatch = path.match(/^\/api\/reports\/(\d+)\/?$/);
+    if (reportByIdMatch) {
+      const id = reportByIdMatch[1];
+      if (method === "GET") return handleGetReportById(id);
+      if (method === "PUT" || method === "PATCH") return handleUpdateReport(id, body);
     }
 
     // ─── AUDIT TRAILS ───
@@ -783,6 +963,45 @@
     const success = window.DemoStore.removeTaskCollaborator(taskId, userId);
     if (!success) return errorResponse("Collaborator not found", 404);
     return emptyResponse(204);
+  }
+
+  // ─── Report Handlers ───
+  function handleGetReports(query) {
+    const filters = {
+      userId: query.userId || query.authorId || "",
+      authorId: query.authorId || "",
+      depId: query.depId || "",
+      status: query.status || "",
+      from: query.from || "",
+      to: query.to || "",
+    };
+    const reports = window.DemoStore.getReports(filters);
+    const total = reports.length;
+    return envelopeResponse(reports, { total, page: 1, limit: total || 1, totalPages: 1 });
+  }
+  function handleGetReportById(id) {
+    const report = window.DemoStore.getReportById(id);
+    if (!report) return errorResponse("Report not found", 404);
+    return jsonResponse(report);
+  }
+  function handleCreateReport(body) {
+    if (!body?.title) return errorResponse("title is required");
+    if (!body?.content) return errorResponse("content is required");
+    const result = window.DemoStore.createReport(body);
+    if (result?.__error) return errorResponse(result.__error, 400);
+    return jsonResponse(result, 201);
+  }
+  function handleUpdateReport(id, body) {
+    const result = window.DemoStore.updateReport(id, body || {});
+    if (!result) return errorResponse("Report not found", 404);
+    if (result.__error) return errorResponse(result.__error, 403);
+    return jsonResponse(result);
+  }
+  function handleUpdateReportStatus(id, body) {
+    if (!body?.status) return errorResponse("status is required");
+    const result = window.DemoStore.updateReportStatus(id, body.status);
+    if (result?.__error) return errorResponse(result.__error, 403);
+    return jsonResponse(result);
   }
 
   // ─── Audit Trail Handlers ───
