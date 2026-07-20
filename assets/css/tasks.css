@@ -597,3 +597,155 @@
     padding: var(--space-2) var(--space-3);
   }
 }
+
+/* ===== Task Rating ===== */
+.star-rating-section {
+  text-align: center;
+  padding: var(--space-4) 0;
+}
+
+.rating-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-2);
+}
+
+.star-rating {
+  display: inline-flex;
+  gap: var(--space-2);
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.star-rating--readonly {
+  cursor: default;
+  pointer-events: none;
+}
+
+.star {
+  color: var(--text-muted);
+  transition: color 0.15s ease, transform 0.1s ease;
+}
+
+.star--active {
+  color: var(--warning);
+}
+
+.star-rating:not(.star-rating--readonly) .star:hover {
+  transform: scale(1.1);
+}
+
+.rating-value-display {
+  margin: var(--space-2) 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.rating-comment-label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: var(--space-4);
+}
+
+.rating-comment-label textarea {
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
+.rating-locked-message {
+  margin-top: var(--space-3);
+  font-style: italic;
+}
+
+.task-rating-display {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.star-rating-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 1.1rem;
+}
+
+.star-display {
+  color: var(--text-muted);
+}
+
+.star-display--filled {
+  color: var(--warning);
+}
+
+.rating-number {
+  margin-left: var(--space-2);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.task-rating-remarks {
+  margin: var(--space-2) 0 0;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.task-rating-remarks .rating-label {
+  display: block;
+  margin: 0 0 2px;
+}
+
+/* ===== Task Attachments ===== */
+.task-attachments-section {
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+}
+
+.task-attachments-list {
+  margin: var(--space-3) 0;
+}
+
+.task-attachments-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.task-attachment-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.task-attachment-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.task-attachment-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-attachment-name {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.task-attachment-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}

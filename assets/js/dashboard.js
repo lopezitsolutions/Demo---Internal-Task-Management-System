@@ -20,6 +20,12 @@ function apiUrl(path) {
   return path.startsWith("/") ? path : `/${path}`;
 }
 
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text == null ? "" : String(text);
+  return div.innerHTML;
+}
+
 const state = {
   profile: null,
   summary: {},
@@ -114,6 +120,16 @@ function renderStatsSkeleton() {
       <div class="skeleton-value"></div>
       <div class="skeleton-label"></div>
     </div>
+    <div class="stat-skeleton">
+      <div class="skeleton-icon"></div>
+      <div class="skeleton-value"></div>
+      <div class="skeleton-label"></div>
+    </div>
+    <div class="stat-skeleton">
+      <div class="skeleton-icon"></div>
+      <div class="skeleton-value"></div>
+      <div class="skeleton-label"></div>
+    </div>
   `;
 }
 
@@ -127,34 +143,126 @@ function renderStatsError(error) {
   `;
 }
 
+const DASHBOARD_ICONS = {
+  users: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  departments: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m-1 4h1m4-4h1m-1 4h1"/></svg>',
+  notes: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+  tasks: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M9 3h6a1 1 0 0 1 1 1v2H8V4a1 1 0 0 1 1-1z"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="15" y2="15"/></svg>',
+  audit: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+};
+
+function getStatCard(iconKey, value, label, subtitle = "") {
+  const safeValue = value !== undefined && value !== null ? value : "0";
+  return `
+    <article class="stat-card">
+      <div class="stat-icon">${DASHBOARD_ICONS[iconKey] || ""}</div>
+      <div class="stat-value">${safeValue}</div>
+      <p class="stat-label">${label}</p>
+      ${subtitle ? `<p class="stat-sublabel">${subtitle}</p>` : ""}
+    </article>
+  `;
+}
+
 function renderStats(stats) {
   if (!elements.statsGrid) return;
 
   const isAdmin = state.profile?.roleName === "Admin";
   const overview = stats.overview || {};
-  const tasksTotal = overview.tasks?.total || 0;
-  const notesTotal = overview.notes?.total || 0;
+  const cards = [];
 
-  const scope = isAdmin ? "global" : "department";
-  const scopeLabel = isAdmin ? "Organization-wide" : "Department";
+  const usersCount = overview.users ?? 0;
+  cards.push(getStatCard("users", usersCount, isAdmin ? "Total Users" : "Department Users", isAdmin ? "Across all departments" : "In your department"));
 
-  const html = `
-    <article class="stat-card">
-      <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M9 3h6a1 1 0 0 1 1 1v2H8V4a1 1 0 0 1 1-1z"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="15" y2="15"/></svg></div>
-      <div class="stat-value">${tasksTotal}</div>
-      <p class="stat-label">Total Tasks</p>
-  
-      </p>
-    </article>
-    <article class="stat-card">
-      <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
-      <div class="stat-value">${notesTotal}</div>
-      <p class="stat-label">Total Notes</p>
-      </p>
-    </article>
+  if (isAdmin) {
+    const deptCount = overview.departments ?? 0;
+    cards.push(getStatCard("departments", deptCount, "Departments", "Active departments"));
+  }
+
+  const notesTotal = overview.notes?.total ?? 0;
+  const notesActive = overview.notes?.active ?? 0;
+  const notesArchived = overview.notes?.archived ?? 0;
+  cards.push(getStatCard("notes", notesTotal, "Notes", `${notesActive} active · ${notesArchived} archived`));
+
+  const t = overview.tasks || {};
+  cards.push(getStatCard("tasks", t.total ?? 0, "Tasks", `${t.to_do ?? 0} to do · ${t.pending_approval ?? 0} pending approval · ${t.in_progress ?? 0} in progress · ${t.completed ?? 0} completed · ${t.rejected ?? 0} rejected · ${t.cancelled ?? 0} cancelled`));
+
+  if (isAdmin) {
+    const auditCount = overview.auditTrails ?? 0;
+    cards.push(getStatCard("audit", auditCount, "Audit Trails", "Total audit records"));
+  }
+
+  elements.statsGrid.innerHTML = cards.join("");
+}
+
+function renderDepartmentStats(stats) {
+  const existing = document.getElementById("department-stats-section");
+  if (existing) existing.remove();
+
+  const departments = stats.departments || [];
+  if (!departments.length) return;
+
+  const isAdmin = state.profile?.roleName === "Admin";
+  const sectionLabel = isAdmin ? "Department Breakdown" : "Your Department";
+
+  const deptCards = departments.map((dept) => {
+    const notesTotal = dept.notes?.total ?? 0;
+    const notesActive = dept.notes?.active ?? 0;
+    const notesArchived = dept.notes?.archived ?? 0;
+    const t = dept.tasks || {};
+    const tasksTotal = t.total ?? 0;
+    const usersCount = dept.users ?? 0;
+    const hasActivity = notesTotal > 0 || tasksTotal > 0 || usersCount > 0;
+
+    const taskPills = [
+      t.to_do > 0 ? `<span class="detail-pill detail-pill--pending">${t.to_do} to do</span>` : "",
+      t.pending_approval > 0 ? `<span class="detail-pill detail-pill--pending">${t.pending_approval} pending approval</span>` : "",
+      t.in_progress > 0 ? `<span class="detail-pill detail-pill--progress">${t.in_progress} in progress</span>` : "",
+      t.completed > 0 ? `<span class="detail-pill detail-pill--done">${t.completed} completed</span>` : "",
+      t.rejected > 0 ? `<span class="detail-pill detail-pill--cancelled">${t.rejected} rejected</span>` : "",
+      t.cancelled > 0 ? `<span class="detail-pill detail-pill--cancelled">${t.cancelled} cancelled</span>` : "",
+    ].join("");
+
+    return `
+      <article class="dept-card ${hasActivity ? "dept-card--active" : "dept-card--empty"}">
+        <div class="dept-card-header">
+          <h3 class="dept-card-name">${escapeHtml(dept.name || `Department ${dept.id}`)}</h3>
+          <span class="dept-card-id">#${dept.id}</span>
+        </div>
+        <div class="dept-card-metrics">
+          <div class="dept-metric"><span class="dept-metric-icon">${DASHBOARD_ICONS.users}</span><span class="dept-metric-value">${usersCount}</span><span class="dept-metric-label">Users</span></div>
+          <div class="dept-metric"><span class="dept-metric-icon">${DASHBOARD_ICONS.notes}</span><span class="dept-metric-value">${notesTotal}</span><span class="dept-metric-label">Notes</span></div>
+          <div class="dept-metric"><span class="dept-metric-icon">${DASHBOARD_ICONS.tasks}</span><span class="dept-metric-value">${tasksTotal}</span><span class="dept-metric-label">Tasks</span></div>
+        </div>
+        <div class="dept-card-details">
+          <div class="dept-detail-row">
+            <span class="dept-detail-label">Notes:</span>
+            <span class="dept-detail-values">
+              <span class="detail-pill detail-pill--active">${notesActive} active</span>
+              ${notesArchived > 0 ? `<span class="detail-pill detail-pill--archived">${notesArchived} archived</span>` : ""}
+            </span>
+          </div>
+          <div class="dept-detail-row">
+            <span class="dept-detail-label">Tasks:</span>
+            <span class="dept-detail-values">${taskPills || '<span class="detail-pill detail-pill--none">No tasks</span>'}</span>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join("");
+
+  const section = document.createElement("section");
+  section.id = "department-stats-section";
+  section.className = "stats-section";
+  section.setAttribute("aria-label", "Department statistics");
+  section.innerHTML = `
+    <div class="stats-toolbar"><div><h2 class="stats-title">${escapeHtml(sectionLabel)}</h2></div></div>
+    <div class="dept-grid">${deptCards}</div>
   `;
 
-  elements.statsGrid.innerHTML = html;
+  const statsSection = document.querySelector(".stats-section");
+  if (statsSection && statsSection.parentNode) {
+    statsSection.parentNode.insertBefore(section, statsSection.nextSibling);
+  }
 }
 
 async function loadStats() {
@@ -171,6 +279,7 @@ async function loadStats() {
     console.log("[loadStats] Stats received:", response);
     state.stats = response;
     renderStats(response);
+    renderDepartmentStats(response);
   } catch (error) {
     console.error("[loadStats] ERROR:", error.message);
     renderStatsError(error);

@@ -157,6 +157,53 @@ function canSubmitForApproval(task) {
   return assignedId == userId;
 }
 
+function normalizeTaskStatus(status) {
+  return String(status || "to_do").trim().toLowerCase().replace(/\s+/g, "_");
+}
+
+function canRateTaskForUser(task = null) {
+  const role = getCurrentUserRole();
+  if (role === "Admin") return true;
+  if (role !== "Manager") return false;
+  if (!task) return true;
+  return normalizeTaskStatus(task.taskStatus) === "completed";
+}
+
+function taskHasRating(task) {
+  return Boolean(task && task.rating != null);
+}
+
+function getRatingActionButtonLabel(task) {
+  return taskHasRating(task) ? "View rating" : "Rate task";
+}
+
+function canViewTaskRating(task = null) {
+  if (!task) return false;
+  if (normalizeTaskStatus(task.taskStatus) !== "completed") return false;
+  const role = getCurrentUserRole();
+  if (role === "Admin" || role === "Manager") return true;
+  const userId = getCurrentUserId();
+  if (userId == null) return false;
+  const assignedId = task.assignedToUser?.id ?? task.assignedTo;
+  if (assignedId != null && String(assignedId) === String(userId)) return true;
+  const collabs = Array.isArray(task.collaborators) ? task.collaborators : [];
+  return collabs.some((c) => String(c.id ?? c.userId ?? "") === String(userId));
+}
+
+function getTaskRatingDisplayHtml(task) {
+  if (!canViewTaskRating(task) || task.rating == null) return "";
+  if (typeof buildTaskRatingDisplayHtml === "function") {
+    return buildTaskRatingDisplayHtml({ rating: task.rating, comment: task.ratingComment || "" });
+  }
+  return "";
+}
+
+function canRedoTaskForUser(task) {
+  const role = getCurrentUserRole();
+  if (role !== "Admin" && role !== "Manager") return false;
+  return normalizeTaskStatus(task?.taskStatus) === "rejected";
+}
+
 function isAdminOrManager() {
   const role = getCurrentUserRole();
   return role === "Admin" || role === "Manager";
@@ -806,6 +853,15 @@ function renderTaskDetail(task) {
         <dt>Collaborators</dt><dd>${collabHtml}</dd>
       </dl>
       ${collaboratorControls}
+      ${getTaskRatingDisplayHtml(task)}
+      <div class="task-attachments-section">
+        <p class="module-label">Attachments</p>
+        <div id="task-attachments-list" class="task-attachments-list"><p class="meta-text">Loading attachments…</p></div>
+        <label class="secondary-button task-attachment-upload-btn">
+          + Add attachment
+          <input type="file" id="task-attachment-input" hidden />
+        </label>
+      </div>
     </div>
   `;
 
@@ -815,6 +871,8 @@ function renderTaskDetail(task) {
   if (canManage) {
     populateCollaboratorSelect(task, "");
   }
+
+  loadTaskAttachments(task.id);
 }
 
 function updateApprovalButtons(task) {
@@ -861,12 +919,28 @@ function updateApprovalButtons(task) {
   ) {
     approvalActionsContainer.innerHTML = `
       <button type="button" class="approval-button approval-button-approve" data-action="approve-task" data-task-id="${taskId}">
-        ✓ Approve
+        Approve
       </button>
       <span class="approval-status-separator"></span>
       <button type="button" class="approval-button approval-button-reject" data-action="reject-task" data-task-id="${taskId}">
-        ✕ Reject
+        Reject
       </button>
+    `;
+    approvalActionsContainer.classList.remove("hidden");
+  }
+
+  // Redo: Admin/Manager can create a follow-up task from a rejected one
+  if (taskStatus === "rejected" && canRedoTaskForUser(task)) {
+    approvalActionsContainer.innerHTML += `
+      <button type="button" class="secondary-button" data-action="redo-task" data-task-id="${taskId}">Redo task</button>
+    `;
+    approvalActionsContainer.classList.remove("hidden");
+  }
+
+  // Rate: Admin always, Manager once the task is completed
+  if (taskStatus === "completed" && canRateTaskForUser(task)) {
+    approvalActionsContainer.innerHTML += `
+      <button type="button" class="secondary-button" data-action="rate-task" data-task-id="${taskId}">${getRatingActionButtonLabel(task)}</button>
     `;
     approvalActionsContainer.classList.remove("hidden");
   }
@@ -1024,6 +1098,23 @@ function handleTaskDetailClick(event) {
   if (action === "reject-task") {
     rejectTask(taskId);
   }
+
+  if (action === "rate-task") {
+    if (typeof openRatingModal === "function") openRatingModal(taskId);
+    else console.warn("[tasks.js] task-rating.js not loaded");
+  }
+
+  if (action === "redo-task") {
+    if (typeof openRedoModal === "function") openRedoModal(taskId);
+    else console.warn("[tasks.js] task-redo.js not loaded");
+  }
+
+  if (action === "remove-attachment") {
+    const attachmentId = button.dataset.attachmentId;
+    if (!attachmentId) return;
+    if (!confirm("Remove this attachment?")) return;
+    removeTaskAttachment(taskId, attachmentId);
+  }
 }
 
 function handleTaskDetailInput(event) {
@@ -1032,6 +1123,16 @@ function handleTaskDetailInput(event) {
   const task = findTaskInList(taskState.viewingTaskId);
   if (!task) return;
   populateCollaboratorSelect(task, searchTerm);
+}
+
+function handleTaskDetailChange(event) {
+  if (event.target?.id !== "task-attachment-input") return;
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const taskId = taskState.viewingTaskId;
+  if (!taskId) return;
+  addTaskAttachment(taskId, file);
+  event.target.value = "";
 }
 
 function handleApprovalActionsClick(event) {
@@ -1049,6 +1150,80 @@ function handleApprovalActionsClick(event) {
     approveTask(taskId);
   } else if (action === "reject-task") {
     rejectTask(taskId);
+  } else if (action === "rate-task") {
+    if (typeof openRatingModal === "function") openRatingModal(taskId);
+  } else if (action === "redo-task") {
+    if (typeof openRedoModal === "function") openRedoModal(taskId);
+  }
+}
+
+// ─── Task Attachments (metadata only — demo has no real file storage) ───
+async function loadTaskAttachments(taskId) {
+  const container = document.getElementById("task-attachments-list");
+  if (!container) return;
+  try {
+    const attachments = await fetchJson(apiPath(`/api/tasks/${taskId}/attachments`));
+    renderTaskAttachments(Array.isArray(attachments) ? attachments : [], taskId);
+  } catch (error) {
+    console.error("Failed to load attachments:", error);
+    container.innerHTML = '<p class="meta-text">Unable to load attachments.</p>';
+  }
+}
+
+function formatFileSize(bytes) {
+  if (!bytes) return "0 KB";
+  const kb = bytes / 1024;
+  if (kb < 1024) return `${kb.toFixed(1)} KB`;
+  return `${(kb / 1024).toFixed(1)} MB`;
+}
+
+function renderTaskAttachments(attachments, taskId) {
+  const container = document.getElementById("task-attachments-list");
+  if (!container) return;
+  if (!attachments.length) {
+    container.innerHTML = '<p class="meta-text">No attachments yet.</p>';
+    return;
+  }
+  container.innerHTML = `<ul class="task-attachments-items">${attachments
+    .map((a) => {
+      const uploader = a.uploadedByUser?.nickname || "Unknown";
+      const when = a.uploadedAt ? new Date(a.uploadedAt).toLocaleString() : "—";
+      return `
+        <li class="task-attachment-item">
+          <span class="task-attachment-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></span>
+          <div class="task-attachment-meta">
+            <p class="task-attachment-name">${escapeHtml(a.fileName)}</p>
+            <span class="meta-text">${formatFileSize(a.fileSize)} · Uploaded by ${escapeHtml(uploader)} · ${escapeHtml(when)}</span>
+          </div>
+          <button type="button" class="ghost-button task-attachment-remove" data-action="remove-attachment" data-attachment-id="${escapeHtml(a.id)}">Remove</button>
+        </li>
+      `;
+    })
+    .join("")}</ul>`;
+}
+
+async function addTaskAttachment(taskId, file) {
+  try {
+    await fetchJson(apiPath(`/api/tasks/${taskId}/attachments`), {
+      method: "POST",
+      body: JSON.stringify({ fileName: file.name, fileSize: file.size }),
+    });
+    if (typeof showNotification === "function") showNotification("success", "Attachment added");
+    loadTaskAttachments(taskId);
+  } catch (error) {
+    console.error("Failed to add attachment:", error);
+    if (typeof showNotification === "function") showNotification("error", "Failed to add attachment.");
+  }
+}
+
+async function removeTaskAttachment(taskId, attachmentId) {
+  try {
+    await fetchJson(apiPath(`/api/tasks/${taskId}/attachments/${attachmentId}`), { method: "DELETE" });
+    if (typeof showNotification === "function") showNotification("success", "Attachment removed");
+    loadTaskAttachments(taskId);
+  } catch (error) {
+    console.error("Failed to remove attachment:", error);
+    if (typeof showNotification === "function") showNotification("error", "Failed to remove attachment.");
   }
 }
 
@@ -1944,6 +2119,7 @@ function registerEvents() {
   if (taskElements.detailBody) {
     taskElements.detailBody.addEventListener("click", handleTaskDetailClick);
     taskElements.detailBody.addEventListener("input", handleTaskDetailInput);
+    taskElements.detailBody.addEventListener("change", handleTaskDetailChange);
   }
 
   // Add event listeners for approval actions
@@ -1968,6 +2144,8 @@ async function initTasksPage() {
 }
 
 window.addEventListener("DOMContentLoaded", initTasksPage);
+window.getTaskFromList = findTaskInList;
+window.canRateTaskForUser = canRateTaskForUser;
 
 // Settings modal sign out handler
 const signoutModalBtn = document.getElementById("signout-modal-btn");

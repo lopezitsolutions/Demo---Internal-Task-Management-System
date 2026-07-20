@@ -51,3 +51,41 @@
     display: none;
   }
 }
+
+/* Rating column */
+.users-rating-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.95rem;
+}
+
+.users-rating-empty {
+  color: var(--text-muted);
+}
+
+.users-rating-count {
+  margin-left: 4px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.star-rating-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.star-display {
+  color: var(--text-muted);
+}
+
+.star-display--filled {
+  color: var(--warning);
+}
+
+.rating-number {
+  margin-left: 4px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}

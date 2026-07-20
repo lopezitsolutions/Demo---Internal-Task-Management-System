@@ -683,6 +683,11 @@
       if (method === "PUT" || method === "PATCH") return handleUpdateUser(id, body);
       if (method === "DELETE") return handleDeleteUser(id);
     }
+    const userRatingsMatch = path.match(/^\/api\/users\/(\d+)\/ratings\/?$/);
+    if (userRatingsMatch) {
+      const id = userRatingsMatch[1];
+      if (method === "GET") return handleGetUserRatings(id);
+    }
 
     // ─── DEPARTMENTS ───
     const deptsMatch = path.match(/^\/api\/departments\/?$/);
@@ -742,6 +747,39 @@
       const taskId = removeCollabMatch[1];
       const userId = removeCollabMatch[2];
       if (method === "DELETE") return handleRemoveCollaborator(taskId, userId);
+    }
+
+    // ─── TASK RATING ───
+    const ratingMatch = path.match(/^\/api\/tasks\/(\d+)\/rating\/?$/);
+    if (ratingMatch) {
+      const taskId = ratingMatch[1];
+      if (method === "GET") return handleGetTaskRating(taskId);
+    }
+    const rateMatch = path.match(/^\/api\/tasks\/(\d+)\/rate\/?$/);
+    if (rateMatch) {
+      const taskId = rateMatch[1];
+      if (method === "POST" || method === "PUT") return handleRateTask(taskId, body);
+    }
+
+    // ─── TASK REDO ───
+    const redoMatch = path.match(/^\/api\/tasks\/(\d+)\/redo\/?$/);
+    if (redoMatch) {
+      const taskId = redoMatch[1];
+      if (method === "POST") return handleRedoTask(taskId, body);
+    }
+
+    // ─── TASK ATTACHMENTS ───
+    const attachmentsMatch = path.match(/^\/api\/tasks\/(\d+)\/attachments\/?$/);
+    if (attachmentsMatch) {
+      const taskId = attachmentsMatch[1];
+      if (method === "GET") return handleGetTaskAttachments(taskId);
+      if (method === "POST") return handleAddTaskAttachment(taskId, body);
+    }
+    const attachmentByIdMatch = path.match(/^\/api\/tasks\/(\d+)\/attachments\/(\d+)\/?$/);
+    if (attachmentByIdMatch) {
+      const taskId = attachmentByIdMatch[1];
+      const attachmentId = attachmentByIdMatch[2];
+      if (method === "DELETE") return handleRemoveTaskAttachment(taskId, attachmentId);
     }
 
     // ─── REPORTS ───
@@ -865,6 +903,10 @@
     if (!success) return errorResponse("User not found", 404);
     return emptyResponse(204);
   }
+  function handleGetUserRatings(id) {
+    const ratings = window.DemoStore.getUserRatings(id);
+    return jsonResponse(ratings);
+  }
 
   // ─── Department Handlers ───
   function handleGetDepartments() {
@@ -963,6 +1005,46 @@
   function handleRemoveCollaborator(taskId, userId) {
     const success = window.DemoStore.removeTaskCollaborator(taskId, userId);
     if (!success) return errorResponse("Collaborator not found", 404);
+    return emptyResponse(204);
+  }
+
+  // ─── Task Rating Handlers ───
+  function handleGetTaskRating(taskId) {
+    const rating = window.DemoStore.getTaskRating(taskId);
+    if (!rating) return errorResponse("No rating found", 404);
+    return jsonResponse(rating);
+  }
+  function handleRateTask(taskId, body) {
+    if (body?.rating == null) return errorResponse("rating is required");
+    const result = window.DemoStore.rateTask(taskId, body);
+    if (!result) return errorResponse("Task not found", 404);
+    if (result.__error) return errorResponse(result.__error, 403);
+    return jsonResponse(result);
+  }
+
+  // ─── Task Redo Handler ───
+  function handleRedoTask(taskId, body) {
+    if (!body?.taskName) return errorResponse("taskName is required");
+    const result = window.DemoStore.redoTask(taskId, body || {});
+    if (!result) return errorResponse("Original task not found", 404);
+    if (result.__error) return errorResponse(result.__error, 403);
+    return jsonResponse(result, 201);
+  }
+
+  // ─── Task Attachment Handlers ───
+  function handleGetTaskAttachments(taskId) {
+    const attachments = window.DemoStore.getTaskAttachments(taskId);
+    return jsonResponse(attachments || []);
+  }
+  function handleAddTaskAttachment(taskId, body) {
+    if (!body?.fileName) return errorResponse("fileName is required");
+    const result = window.DemoStore.addTaskAttachment(taskId, body);
+    if (!result) return errorResponse("Task not found", 404);
+    return jsonResponse(result, 201);
+  }
+  function handleRemoveTaskAttachment(taskId, attachmentId) {
+    const success = window.DemoStore.removeTaskAttachment(taskId, attachmentId);
+    if (!success) return errorResponse("Attachment not found", 404);
     return emptyResponse(204);
   }
 

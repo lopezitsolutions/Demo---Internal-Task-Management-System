@@ -24,6 +24,7 @@ const userState = {
   editingUserId: null,
   pageFetchSize: 100,
   pagination: null,
+  ratingsByUserId: {},
 };
 
 function apiPath(path) {
@@ -233,6 +234,48 @@ function updatePaginationUi() {
   pag.hidden = true;
 }
 
+async function fetchUserRatingSummary(userId) {
+  try {
+    const data = await fetchJson(apiPath(`/api/users/${userId}/ratings`));
+    return {
+      average: data?.avgRating ?? null,
+      count: data?.totalTasksRated ?? 0,
+    };
+  } catch (error) {
+    console.warn(`Unable to load ratings for user ${userId}:`, error.message || error);
+    return null;
+  }
+}
+
+function buildUserRatingCellHtml(user) {
+  const summary = userState.ratingsByUserId[String(user.id)];
+  if (!summary || !summary.average) {
+    return '<span class="users-rating-empty">—</span>';
+  }
+  const rounded = Math.round(summary.average);
+  const starsHtml = Array.from({ length: 5 }, (_, i) =>
+    `<span class="star-display ${i < rounded ? "star-display--filled" : ""}">★</span>`,
+  ).join("");
+  const countHtml = summary.count
+    ? `<span class="users-rating-count">(${summary.count})</span>`
+    : "";
+  return `<div class="users-rating-cell star-rating-display">${starsHtml}<span class="rating-number">${summary.average}/5</span>${countHtml}</div>`;
+}
+
+async function enrichUsersWithRatings() {
+  const usersToFetch = userState.users.filter(
+    (u) => !Object.prototype.hasOwnProperty.call(userState.ratingsByUserId, String(u.id)),
+  );
+  if (!usersToFetch.length) return;
+  await Promise.all(
+    usersToFetch.map(async (user) => {
+      const summary = await fetchUserRatingSummary(user.id);
+      userState.ratingsByUserId[String(user.id)] = summary ?? { average: null, count: 0 };
+    }),
+  );
+  renderUsers();
+}
+
 function renderUsers() {
   if (!userElements.usersTableBody) return;
 
@@ -241,7 +284,7 @@ function renderUsers() {
   if (!userState.users.length) {
     userElements.usersTableBody.innerHTML = `
       <tr class="department-table-empty">
-        <td colspan="8">No users found for this page.</td>
+        <td colspan="9">No users found for this page.</td>
       </tr>`;
     if (userElements.usersCount) {
       userElements.usersCount.textContent = String(
@@ -269,6 +312,7 @@ function renderUsers() {
       <td class="department-table-meta">${escapeHtml(phone)}</td>
       <td>${escapeHtml(dep)}</td>
       <td>${escapeHtml(role)}</td>
+      <td>${buildUserRatingCellHtml(user)}</td>
       <td class="department-table-meta">${escapeHtml(user.updatedAt ?? "—")}</td>
       <td class="department-table-actions">
         <button type="button" class="secondary-button table-action-btn" data-action="edit-user" data-id="${escapeHtml(user.id)}">Edit</button>
@@ -345,6 +389,7 @@ async function loadUsers() {
       totalPages: 1,
     };
     renderUsers();
+    enrichUsersWithRatings();
   } catch (error) {
     console.error("Unable to load users:", error);
     userState.users = [];

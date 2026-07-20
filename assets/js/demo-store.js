@@ -53,6 +53,7 @@
     tasks: 100,
     auditTrails: 100,
     reports: 100,
+    attachments: 100,
   };
 
   function generateId(entity) {
@@ -415,6 +416,119 @@
     return task.collaborators.length < before;
   }
 
+  // ─── Task Rating ───
+  // ─── User Ratings (aggregate of task ratings assigned to a user) ───
+  function getUserRatings(userId) {
+    const rated = store.tasks.filter(
+      (t) => (t.deletedAt === null || t.deletedAt === undefined) && String(t.assignedTo) === String(userId) && t.rating != null,
+    );
+    if (!rated.length) {
+      return { userId: Number(userId), avgRating: 0, totalTasksRated: 0, ratings: [] };
+    }
+    const sum = rated.reduce((acc, t) => acc + Number(t.rating), 0);
+    const avgRating = Math.round((sum / rated.length) * 100) / 100;
+    return {
+      userId: Number(userId),
+      avgRating,
+      totalTasksRated: rated.length,
+      ratings: rated.map((t) => ({ taskId: t.id, taskName: t.taskName, rating: t.rating, comment: t.ratingComment || "", ratedByUser: t.ratedByUser || null })),
+    };
+  }
+
+  function getTaskRating(taskId) {
+    const task = getTaskById(taskId);
+    if (!task || task.rating == null) return null;
+    return { rating: task.rating, comment: task.ratingComment || "", ratedByUser: task.ratedByUser || null };
+  }
+
+  function rateTask(taskId, data) {
+    const task = getTaskById(taskId);
+    if (!task) return null;
+    const rater = getCurrentUser();
+    const roleName = rater ? (rater.roleName || rater.role?.name) : "Employee";
+    if (roleName !== "Admin" && roleName !== "Manager") {
+      return { __error: "Only Admin or Manager can rate a task" };
+    }
+    // A manager cannot overwrite a rating already locked in by an Admin
+    if (roleName === "Manager" && task.ratedByUser && task.ratedByUser.roleName === "Admin") {
+      return { __error: "This rating was set by an Admin and cannot be edited" };
+    }
+    const rating = Number(data.rating);
+    if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
+      return { __error: "rating must be between 1 and 5" };
+    }
+    const oldTask = deepClone(task);
+    task.rating = rating;
+    task.ratingComment = data.comment || "";
+    task.ratedByUser = rater ? { id: rater.id, nickname: rater.nickname, roleName } : null;
+    task.updatedAt = new Date().toISOString();
+    addAuditTrail("UPDATE", "tasks", String(taskId), oldTask, task);
+    return { rating: task.rating, comment: task.ratingComment, ratedByUser: task.ratedByUser };
+  }
+
+  // ─── Task Redo ───
+  function redoTask(taskId, data) {
+    const original = getTaskById(taskId);
+    if (!original) return null;
+    const rater = getCurrentUser();
+    const roleName = rater ? (rater.roleName || rater.role?.name) : "Employee";
+    if (roleName !== "Admin" && roleName !== "Manager") {
+      return { __error: "Only Admin or Manager can create a redo task" };
+    }
+    if (original.taskStatus !== "rejected") {
+      return { __error: "Only rejected tasks can be redone" };
+    }
+    const newTask = createTask({
+      taskName: data.taskName || `Redo: ${original.taskName}`,
+      description: data.description ?? original.description,
+      noteId: data.noteId ?? original.noteId,
+      assignedTo: data.assignedTo ?? original.assignedTo,
+      createdBy: rater?.id ?? original.createdBy,
+      dueDate: data.dueDate ?? original.dueDate,
+      taskStatus: "to_do",
+    });
+    newTask.redoOf = Number(taskId);
+    original.redoCount = (original.redoCount || 0) + 1;
+    return newTask;
+  }
+
+  // ─── Task Attachments (metadata only — static demo has no file storage) ───
+  function getTaskAttachments(taskId) {
+    const task = getTaskById(taskId);
+    if (!task) return [];
+    return task.attachments || [];
+  }
+
+  function addTaskAttachment(taskId, data) {
+    const task = getTaskById(taskId);
+    if (!task) return null;
+    if (!Array.isArray(task.attachments)) task.attachments = [];
+    const uploader = getCurrentUser();
+    const attachment = {
+      id: generateId("attachments"),
+      fileName: data.fileName,
+      fileSize: data.fileSize || 0,
+      uploadedByUser: uploader ? { id: uploader.id, nickname: uploader.nickname } : null,
+      uploadedAt: new Date().toISOString(),
+    };
+    task.attachments.push(attachment);
+    task.updatedAt = new Date().toISOString();
+    addAuditTrail("CREATE", "task_attachments", String(attachment.id), null, attachment);
+    return attachment;
+  }
+
+  function removeTaskAttachment(taskId, attachmentId) {
+    const task = getTaskById(taskId);
+    if (!task || !Array.isArray(task.attachments)) return false;
+    const before = task.attachments.length;
+    task.attachments = task.attachments.filter((a) => String(a.id) !== String(attachmentId));
+    if (task.attachments.length < before) {
+      task.updatedAt = new Date().toISOString();
+      return true;
+    }
+    return false;
+  }
+
   // ─── Employee Reports ───
   const REPORT_STATUSES = ["draft", "submitted", "reviewed", "archived"];
   const REPORT_TRANSITIONS = {
@@ -609,14 +723,66 @@
   }
 
   // ─── Stats ───
-  function getStats(scope) {
-    const activeTasks = store.tasks.filter((t) => t.deletedAt === null || t.deletedAt === undefined).length;
-    const activeNotes = store.notes.filter((n) => n.deletedAt === null || n.deletedAt === undefined).length;
+  function buildTaskStatusStats(tasks) {
+    const s = { total: tasks.length, to_do: 0, pending_approval: 0, in_progress: 0, completed: 0, rejected: 0, cancelled: 0 };
+    tasks.forEach((t) => { if (s[t.taskStatus] !== undefined) s[t.taskStatus]++; });
+    return s;
+  }
+
+  function buildNoteStatusStats(notes) {
     return {
+      total: notes.length,
+      active: notes.filter((n) => n.status === "Active").length,
+      archived: notes.filter((n) => n.status === "Archived").length,
+    };
+  }
+
+  function getStats(scope) {
+    const currentUser = getCurrentUser();
+    const currentRole = currentUser ? (currentUser.roleName || currentUser.role?.name) : null;
+    const isAdmin = scope === "global" || currentRole === "Admin";
+    const departmentId = currentUser ? (currentUser.depId ?? currentUser.department?.id ?? null) : null;
+
+    const activeUsers = store.users.filter((u) => u.deletedAt === null || u.deletedAt === undefined);
+    const activeDepartments = store.departments.filter((d) => d.deletedAt === null || d.deletedAt === undefined);
+    const activeNotes = store.notes.filter((n) => n.deletedAt === null || n.deletedAt === undefined);
+    const activeTasks = store.tasks.filter((t) => t.deletedAt === null || t.deletedAt === undefined);
+
+    function notesForDep(depId) {
+      return depId == null ? activeNotes : activeNotes.filter((n) => n.depId === depId);
+    }
+    function tasksForDep(depId) {
+      if (depId == null) return activeTasks;
+      const noteIds = new Set(notesForDep(depId).map((n) => n.id));
+      return activeTasks.filter((t) => t.noteId != null && noteIds.has(t.noteId));
+    }
+
+    const scopeDepId = isAdmin ? null : departmentId;
+    const usersScoped = isAdmin ? activeUsers : activeUsers.filter((u) => u.depId === departmentId);
+    const notesScoped = notesForDep(scopeDepId);
+    const tasksScoped = tasksForDep(scopeDepId);
+
+    const departmentData = (isAdmin ? activeDepartments : activeDepartments.filter((d) => d.id === departmentId))
+      .map((dept) => ({
+        id: dept.id,
+        name: dept.depName || dept.name,
+        users: activeUsers.filter((u) => u.depId === dept.id).length,
+        notes: buildNoteStatusStats(notesForDep(dept.id)),
+        tasks: buildTaskStatusStats(tasksForDep(dept.id)),
+      }))
+      .sort((a, b) => String(a.name).localeCompare(String(b.name)));
+
+    return {
+      scope: isAdmin ? "global" : "department",
+      departmentId: isAdmin ? null : departmentId,
       overview: {
-        tasks: { total: activeTasks },
-        notes: { total: activeNotes },
+        users: usersScoped.length,
+        departments: isAdmin ? activeDepartments.length : 1,
+        notes: buildNoteStatusStats(notesScoped),
+        tasks: buildTaskStatusStats(tasksScoped),
+        auditTrails: store.auditTrails.length,
       },
+      departments: departmentData,
     };
   }
 
@@ -702,6 +868,16 @@
     getTaskCollaborators,
     addTaskCollaborator,
     removeTaskCollaborator,
+    // Task Rating
+    getUserRatings,
+    getTaskRating,
+    rateTask,
+    // Task Redo
+    redoTask,
+    // Task Attachments
+    getTaskAttachments,
+    addTaskAttachment,
+    removeTaskAttachment,
     // Reports
     getReports,
     getReportById,
